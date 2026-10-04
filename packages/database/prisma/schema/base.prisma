@@ -30,6 +30,8 @@ model Tenant {
   auditEvents      AuditEvent[]
   numberSequences  NumberSequence[]
   numberConfigs    NumberSequenceConfig[]
+  departments      Department[]
+  practitioners    Practitioner[]
 }
 
 model Facility {
@@ -54,6 +56,9 @@ model Facility {
   userFacilities  UserFacility[]
   numberSequences NumberSequence[]
   numberConfigs   NumberSequenceConfig[]
+  departments     Department[]
+  practitioners   Practitioner[]
+  patients        Patient[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -78,6 +83,7 @@ model User {
   facilities UserFacility[]
   roles      UserRole[]
   tokens     RefreshToken[]
+  practitioners Practitioner[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, username])

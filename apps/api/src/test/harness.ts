@@ -100,3 +100,29 @@ export async function startApp(opts: { rateLimit?: boolean } = {}): Promise<Test
     close: async () => { await app.close(); },
   };
 }
+
+// ───────────── synthetic data builders ─────────────
+
+const LETTERS = "bcdfghjklmnprstvwz";
+const VOWELS = "aeiou";
+/** A pronounceable, effectively unique synthetic name word so trigram duplicate detection never collides across tests. */
+export function uniqueWord(len = 8): string {
+  const b = randomBytes(len);
+  return Array.from(b, (x, i) => (i % 2 === 0 ? LETTERS[x % LETTERS.length] : VOWELS[x % VOWELS.length])).join("").replace(/^./, (c) => c.toUpperCase());
+}
+export function randomMobile(): string {
+  const digits = Array.from(randomBytes(9), (x) => x % 10).join("");
+  return `9${digits}`;
+}
+export function patientBody(o: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    firstName: uniqueWord(8), lastName: uniqueWord(8), gender: "FEMALE", dateOfBirth: "1990-04-02",
+    mobile: randomMobile(), addressLine: "12 Synthetic Lane", city: "Kolkata", district: "Kolkata", state: "West Bengal", postalCode: "700001",
+    ...o,
+  };
+}
+export async function registerPatient(t: TestApp, token: string, o: Record<string, unknown> = {}): Promise<{ id: string; mrn: string; version: number }> {
+  const r = await t.api("post", "/patients", token).send(patientBody(o));
+  if (r.status !== 201) throw new Error(`registerPatient failed: ${r.status} ${JSON.stringify(r.body)}`);
+  return r.body.data as { id: string; mrn: string; version: number };
+}

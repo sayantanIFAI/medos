@@ -1,0 +1,96 @@
+// ───────────────────────── Stage 7/8: canonical patient ─────────────────────────
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum IdentifierType {
+  MRN
+  LEGACY
+  EXTERNAL
+  ABHA
+}
+
+model Patient {
+  id                     String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId               String       @db.Uuid
+  registeredFacilityId   String       @db.Uuid
+  firstName              String
+  lastName               String?
+  // Lower-cased, punctuation-stripped "first last" used for search and duplicate detection.
+  searchName             String
+  gender                 Gender
+  dateOfBirth            DateTime?    @db.Date
+  estimatedAgeYears      Int?
+  ageRecordedOn          DateTime?    @db.Date
+  mobile                 String?
+  addressLine            String?
+  city                   String?
+  district               String?
+  state                  String?
+  postalCode             String?
+  guardianName           String?
+  guardianRelation       String?
+  guardianMobile         String?
+  emergencyContactName   String?
+  emergencyContactMobile String?
+  bloodGroup             BloodGroup?
+  status                 ActiveStatus @default(ACTIVE)
+  /// Optimistic-concurrency token; incremented on every demographic update.
+  version                Int          @default(1)
+  createdById            String       @db.Uuid
+  createdAt              DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime     @updatedAt @db.Timestamptz(3)
+
+  facility    Facility            @relation(fields: [tenantId, registeredFacilityId], references: [tenantId, id], onDelete: Restrict)
+  identifiers PatientIdentifier[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, mobile])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([searchName(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_searchName_trgm")
+  @@index([mobile(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_mobile_trgm")
+}
+
+model PatientIdentifier {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String         @db.Uuid
+  patientId String         @db.Uuid
+  type      IdentifierType
+  value     String
+  issuer    String?
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+
+  patient Patient @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, type, value])
+  @@index([tenantId, patientId])
+  @@index([value(ops: raw("gin_trgm_ops"))], type: Gin, map: "PatientIdentifier_value_trgm")
+}
+
+// Generic idempotency ledger (patients, payments, dispenses, refunds, ...). Rows commit atomically
+// with the business transaction they protect, so a key exists iff the operation committed.
+model IdempotencyKey {
+  tenantId     String   @db.Uuid
+  scope        String
+  key          String
+  requestHash  String
+  responseBody Json?
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([tenantId, scope, key])
+}

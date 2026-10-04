@@ -87,6 +87,10 @@ export class NumberingService {
   }
 
   async update(ctx: RequestContext, type: SequenceType, input: z.infer<typeof sequenceConfigSchema>) {
+    // MRNs must be unique tenant-wide; the facility code in the pattern guarantees that across facilities.
+    if (type === "MRN" && !input.pattern.includes("{FACILITY}")) {
+      throw new DomainError("VALIDATION_FAILED", "The MRN pattern must contain {FACILITY} so MRNs stay unique across facilities", 400);
+    }
     return this.prisma.$transaction(async (tx) => {
       const where = { tenantId_facilityId_type: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, type } };
       const before = await tx.numberSequenceConfig.findUnique({ where });
