@@ -1,0 +1,236 @@
+// ───────────────────────── Stage 14: allergies and diagnoses ─────────────────────────
+
+enum AllergyType {
+  DRUG
+  FOOD
+  ENVIRONMENT
+  OTHER
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum AllergyStatus {
+  ACTIVE
+  RESOLVED
+  ENTERED_IN_ERROR
+}
+
+/// Patient-level and visible in every future encounter. Content is immutable; only status changes (with reason).
+model Allergy {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String          @db.Uuid
+  patientId         String          @db.Uuid
+  allergen          String
+  allergenKey       String
+  type              AllergyType
+  reaction          String?
+  severity          AllergySeverity
+  status            AllergyStatus   @default(ACTIVE)
+  recordedById      String          @db.Uuid
+  recordedAt        DateTime        @default(now()) @db.Timestamptz(3)
+  statusReason      String?
+  statusChangedById String?         @db.Uuid
+  statusChangedAt   DateTime?       @db.Timestamptz(3)
+
+  patient Patient @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, patientId, status])
+}
+
+enum DiagnosisType {
+  PROVISIONAL
+  FINAL
+  SECONDARY
+}
+
+enum DiagnosisStatus {
+  ACTIVE
+  REMOVED
+}
+
+model Diagnosis {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId            String          @db.Uuid
+  facilityId          String          @db.Uuid
+  patientId           String          @db.Uuid
+  encounterId         String          @db.Uuid
+  text                String
+  code                String?
+  type                DiagnosisType
+  status              DiagnosisStatus @default(ACTIVE)
+  recordedById        String          @db.Uuid
+  recordedAt          DateTime        @default(now()) @db.Timestamptz(3)
+  removedById         String?         @db.Uuid
+  removedAt           DateTime?       @db.Timestamptz(3)
+  removeReason        String?
+  /// Set when an amendment replaced this diagnosis.
+  supersededAtVersion Int?
+
+  patient   Patient   @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  encounter Encounter @relation(fields: [tenantId, facilityId, encounterId], references: [tenantId, facilityId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, encounterId, status])
+  @@index([tenantId, patientId, recordedAt(sort: Desc)])
+}
+
+// ───────────────────────── Stage 13/16: consultation documents with signing + amendment ─────────────────────────
+
+enum ClinicalDocKind {
+  CONSULTATION
+  DISCHARGE_SUMMARY
+}
+
+enum ClinicalDocStatus {
+  DRAFT
+  SIGNED
+  AMENDED
+}
+
+enum ClinicalVersionKind {
+  SIGNED
+  AMENDED
+}
+
+model ClinicalDocument {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String            @db.Uuid
+  facilityId     String            @db.Uuid
+  patientId      String            @db.Uuid
+  encounterId    String            @db.Uuid
+  kind           ClinicalDocKind
+  status         ClinicalDocStatus @default(DRAFT)
+  authorId       String            @db.Uuid
+  /// Working copy while DRAFT. Frozen once signed; the immutable versions are the record.
+  draft          Json              @default("{}")
+  currentVersion Int               @default(0)
+  /// Optimistic-concurrency token for draft edits.
+  version        Int               @default(1)
+  signedAt       DateTime?         @db.Timestamptz(3)
+  signedById     String?           @db.Uuid
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @db.Timestamptz(3)
+
+  patient   Patient                   @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  encounter Encounter                 @relation(fields: [tenantId, facilityId, encounterId], references: [tenantId, facilityId, id], onDelete: Restrict)
+  versions  ClinicalDocumentVersion[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, encounterId, kind])
+  @@index([tenantId, patientId])
+}
+
+/// Immutable snapshots. v1 is the signed original; every amendment appends a new version. Nothing is ever updated or deleted.
+model ClinicalDocumentVersion {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String              @db.Uuid
+  documentId String              @db.Uuid
+  version    Int
+  kind       ClinicalVersionKind
+  content    Json
+  snapshot   Json
+  reason     String?
+  authorId   String              @db.Uuid
+  createdAt  DateTime            @default(now()) @db.Timestamptz(3)
+
+  document ClinicalDocument @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([documentId, version])
+  @@index([tenantId, documentId])
+}
+
+// ───────────────────────── Stage 15: medication orders ─────────────────────────
+
+enum MedicationOrderStatus {
+  DRAFT
+  SIGNED
+  SUPERSEDED
+  CANCELLED
+}
+
+enum MedicationRoute {
+  ORAL
+  IV
+  IM
+  SC
+  TOPICAL
+  OTHER
+}
+
+enum MedicationFrequency {
+  OD
+  BD
+  TDS
+  QID
+  HS
+  SOS
+  STAT
+  OTHER
+}
+
+enum OrderItemStatus {
+  ACTIVE
+  STOPPED
+}
+
+/// A medication ORDER (what the doctor prescribes). Administration (what the nurse gave) is a separate record.
+model MedicationOrder {
+  id           String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String                @db.Uuid
+  facilityId   String                @db.Uuid
+  patientId    String                @db.Uuid
+  encounterId  String                @db.Uuid
+  /// Assigned at signing, never for drafts.
+  orderNumber  String?
+  status       MedicationOrderStatus @default(DRAFT)
+  orderedById  String                @db.Uuid
+  signedById   String?               @db.Uuid
+  signedAt     DateTime?             @db.Timestamptz(3)
+  supersededAtVersion Int?
+  notes        String?
+  createdAt    DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime              @updatedAt @db.Timestamptz(3)
+
+  patient   Patient               @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  encounter Encounter             @relation(fields: [tenantId, facilityId, encounterId], references: [tenantId, facilityId, id], onDelete: Restrict)
+  items     MedicationOrderItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, facilityId, orderNumber])
+  @@index([tenantId, encounterId, status])
+  @@index([tenantId, facilityId, status, signedAt])
+}
+
+model MedicationOrderItem {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String              @db.Uuid
+  orderId           String              @db.Uuid
+  lineNo            Int
+  genericName       String
+  brandName         String?
+  strength          String?
+  dosage            String
+  route             MedicationRoute
+  frequency         MedicationFrequency
+  frequencyText     String?
+  durationDays      Int?
+  quantity          Int?
+  instructions      String?
+  status            OrderItemStatus     @default(ACTIVE)
+  /// Increased by pharmacy dispensing; an item that was partly dispensed can never be edited away.
+  dispensedQuantity Int                 @default(0)
+  stoppedAt         DateTime?           @db.Timestamptz(3)
+  stoppedById       String?             @db.Uuid
+  stopReason        String?
+
+  order MedicationOrder @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([orderId, lineNo])
+}

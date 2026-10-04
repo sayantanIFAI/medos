@@ -148,3 +148,18 @@ export async function makeUserWithPermissions(t: TestApp, tenant: TestTenant, pe
   if (r.status !== 200) throw new Error(`role assign failed: ${JSON.stringify(r.body)}`);
   return user;
 }
+export interface TestVisit { encounterId: string; queueId: string; appointmentId: string }
+
+/** Registers an immediate OPD visit (walk-in) for the patient with the given doctor, returning the encounter. */
+export async function startVisit(t: TestApp, receptionToken: string, doctor: TestDoctor, patientId: string): Promise<TestVisit> {
+  const r = await t.api("post", "/appointments/walk-in", receptionToken).send({ patientId, practitionerId: doctor.practitionerId });
+  if (r.status !== 201) throw new Error(`startVisit failed: ${r.status} ${JSON.stringify(r.body)}`);
+  return { encounterId: r.body.data.encounter.id as string, queueId: r.body.data.queueEntry.id as string, appointmentId: r.body.data.appointment.id as string };
+}
+/** A practitioner whose user holds exactly the listed permissions (for authorization edge cases). */
+export async function makeClinicianWith(t: TestApp, tenant: TestTenant, permissions: string[]): Promise<TestDoctor> {
+  const user = await makeUserWithPermissions(t, tenant, permissions);
+  const department = await t.prisma.department.create({ data: { tenantId: tenant.tenantId, facilityId: tenant.facilityId, name: `Dept ${uniqueWord(5)}`, code: `D${randomBytes(3).toString("hex").toUpperCase()}` } });
+  const practitioner = await t.prisma.practitioner.create({ data: { tenantId: tenant.tenantId, facilityId: tenant.facilityId, userId: user.id, departmentId: department.id, displayName: `Dr. ${uniqueWord(6)} ${uniqueWord(7)}` } });
+  return { userId: user.id, token: user.token, practitionerId: practitioner.id, departmentId: department.id };
+}

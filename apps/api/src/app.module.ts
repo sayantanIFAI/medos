@@ -13,6 +13,15 @@ import { EncountersController } from "./modules/encounters/encounters.controller
 import { EncountersService } from "./modules/encounters/encounters.service";
 import { QueueController } from "./modules/queue/queue.controller";
 import { QueueService } from "./modules/queue/queue.service";
+import { VitalsController } from "./modules/vitals/vitals.controller";
+import { VitalsService } from "./modules/vitals/vitals.service";
+import { AllergiesController } from "./modules/clinical/allergies.controller";
+import { AllergiesService } from "./modules/clinical/allergies.service";
+import { ClinicianService } from "./modules/clinical/clinician.service";
+import { ConsultationsController } from "./modules/clinical/consultations.controller";
+import { ConsultationsService } from "./modules/clinical/consultations.service";
+import { PrescriptionsController } from "./modules/prescriptions/prescriptions.controller";
+import { PrescriptionsService } from "./modules/prescriptions/prescriptions.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -35,7 +44,8 @@ import { UsersService } from "./modules/users/users.service";
 export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
-  EncountersController, AppointmentsController, QueueController,
+  EncountersController, AppointmentsController, QueueController, VitalsController,
+  AllergiesController, ConsultationsController, PrescriptionsController,
 ];
 
 @Module({
@@ -44,7 +54,8 @@ export const CONTROLLERS = [
     { provide: CONFIG, useFactory: () => loadConfig() },
     PrismaService, AuditService, PasswordService,
     AuthService, TenantsService, FacilitiesService, UsersService, NumberingService, MastersService, PatientsService, IdempotencyService,
-    EncountersService, AppointmentsService, QueueService,
+    EncountersService, AppointmentsService, QueueService, VitalsService,
+    ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

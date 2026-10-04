@@ -34,6 +34,10 @@ model Encounter {
   practitioner Practitioner? @relation(fields: [practitionerId], references: [id], onDelete: Restrict)
   appointment  Appointment?
   queueEntry   QueueEntry?
+  observations Observation[]
+  diagnoses    Diagnosis[]
+  documents    ClinicalDocument[]
+  medicationOrders MedicationOrder[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, id])

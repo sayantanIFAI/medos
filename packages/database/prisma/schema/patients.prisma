@@ -61,6 +61,11 @@ model Patient {
   encounters   Encounter[]
   appointments Appointment[]
   queueEntries QueueEntry[]
+  observations Observation[]
+  allergies    Allergy[]
+  diagnoses    Diagnosis[]
+  documents    ClinicalDocument[]
+  medicationOrders MedicationOrder[]
 
   @@unique([tenantId, id])
   @@index([tenantId, mobile])

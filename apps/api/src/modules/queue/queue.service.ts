@@ -140,7 +140,11 @@ export class QueueService {
       }
 
       if (entry.appointmentId) await this.syncAppointment(tx, ctx, entry.appointmentId, action, reason);
-      if (action === "complete") await this.encounters.transition(tx, ctx, entry.encounterId, "COMPLETED");
+      if (action === "complete") {
+        const doc = await tx.clinicalDocument.findFirst({ where: { tenantId: ctx.tenantId, encounterId: entry.encounterId, kind: "CONSULTATION" }, select: { status: true } });
+        if (doc?.status === "DRAFT") throw new DomainError("INVALID_STATE", "Sign the consultation before completing the visit", 409);
+        await this.encounters.transition(tx, ctx, entry.encounterId, "COMPLETED");
+      }
       if (action === "cancel") await this.encounters.transition(tx, ctx, entry.encounterId, "CANCELLED", reason);
       await this.audit.record(tx, actorOf(ctx), { action: `QUEUE_${action.toUpperCase()}`, entityType: "QueueEntry", entityId: id, metadata: { from, to: rule.to, ...(reason ? { reason } : {}) } });
       return toQueueView(await tx.queueEntry.findFirstOrThrow({ where: { id, tenantId: ctx.tenantId }, select: VIEW }));
