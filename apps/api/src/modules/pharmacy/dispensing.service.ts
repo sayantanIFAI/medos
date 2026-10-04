@@ -26,8 +26,10 @@ export const dispenseSchema = z.object({
   }).strict()).min(1).max(30),
   payments: z.array(z.object({ method, amount: amount({ positive: true }), reference: z.string().trim().min(4).max(60).optional() }).strict()).max(6).optional(),
   acknowledgeAllergyWarnings: z.boolean().optional(),
+  /** IPD patients: add the medicines to the admission bill instead of invoicing at the counter. */
+  chargeToAdmission: z.boolean().optional(),
   notes: z.string().trim().max(300).optional(),
-}).strict();
+}).strict().refine((v) => !(v.chargeToAdmission && v.payments?.length), { message: "Payment is taken at discharge for charges added to an admission", path: ["payments"] });
 
 export const dispenseReturnSchema = z.object({
   reason: z.string().trim().min(5).max(240),
@@ -165,27 +167,40 @@ export class DispensingService {
       // Medicine prices are MRP-inclusive of GST: the bill is exactly qty x selling price; the GST component is recorded for reporting.
       const total = lines.reduce((a, l) => a.plus(l.total), new Decimal(0));
       const gstIncluded = lines.reduce((a, l) => a.plus(round2(l.total.times(l.gst).div(new Decimal(100).plus(l.gst)))), new Decimal(0));
-      const invoice = await this.invoices.createIssuedFromSource(tx, ctx, {
-        patientId: input.patientId, encounterId: order?.encounterId ?? null, kind: "PHARMACY", notes: `Pharmacy ${dispenseNumber}`,
-        lines: lines.map((l) => ({ description: l.label, quantity: new Decimal(l.quantity), unitPrice: l.unitPrice, taxPercent: new Decimal(0), sourceType: "DISPENSE", sourceId: l.id })),
-      });
-      await tx.dispense.create({
-        data: {
-          id: header.id, tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, medicationOrderId: order?.id ?? null, encounterId: order?.encounterId ?? null, dispenseNumber,
-          invoiceId: invoice.id, subtotal: total.minus(gstIncluded).toFixed(2), taxTotal: gstIncluded.toFixed(2), total: total.toFixed(2), notes: input.notes ?? null, dispensedById: ctx.userId,
-        },
-      });
-      await tx.dispenseItem.createMany({
-        data: lines.map((l, idx) => ({ id: l.id, tenantId: ctx.tenantId, dispenseId: header.id, lineNo: idx + 1, medicationOrderItemId: l.medicationOrderItemId, medicineId: l.medicineId, batchId: l.batchId, quantity: l.quantity, unitPrice: l.unitPrice.toFixed(2), taxPercent: l.gst.toFixed(2), lineTotal: l.total.toFixed(2) })),
-      });
+      let invoice: { id: string; invoiceNumber: string } | null = null;
+      if (input.chargeToAdmission) {
+        const adm = await tx.admission.findFirst({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, status: "ADMITTED" }, select: { id: true } });
+        if (!adm) throw new DomainError("INVALID_STATE", "The patient is not currently admitted, so medicines cannot be charged to an admission", 409);
+        await tx.dispense.create({
+          data: { id: header.id, tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, medicationOrderId: order?.id ?? null, encounterId: order?.encounterId ?? null, dispenseNumber, invoiceId: null, subtotal: total.minus(gstIncluded).toFixed(2), taxTotal: gstIncluded.toFixed(2), total: total.toFixed(2), notes: input.notes ?? null, dispensedById: ctx.userId },
+        });
+        await tx.dispenseItem.createMany({
+          data: lines.map((l, idx) => ({ id: l.id, tenantId: ctx.tenantId, dispenseId: header.id, lineNo: idx + 1, medicationOrderItemId: l.medicationOrderItemId, medicineId: l.medicineId, batchId: l.batchId, quantity: l.quantity, unitPrice: l.unitPrice.toFixed(2), taxPercent: l.gst.toFixed(2), lineTotal: l.total.toFixed(2) })),
+        });
+        await tx.charge.createMany({
+          data: lines.map((l) => ({ tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, admissionId: adm.id, type: "MEDICINE" as const, description: `${l.label} x${l.quantity} (${dispenseNumber})`, quantity: l.quantity.toString(), unitPrice: l.unitPrice.toFixed(2), taxPercent: "0", sourceKey: `DISPENSE_ITEM:${l.id}`, chargedById: ctx.userId })),
+        });
+      } else {
+        const created = await this.invoices.createIssuedFromSource(tx, ctx, {
+          patientId: input.patientId, encounterId: order?.encounterId ?? null, kind: "PHARMACY", notes: `Pharmacy ${dispenseNumber}`,
+          lines: lines.map((l) => ({ description: l.label, quantity: new Decimal(l.quantity), unitPrice: l.unitPrice, taxPercent: new Decimal(0), sourceType: "DISPENSE", sourceId: l.id })),
+        });
+        invoice = { id: created.id, invoiceNumber: created.invoiceNumber };
+        await tx.dispense.create({
+          data: { id: header.id, tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, medicationOrderId: order?.id ?? null, encounterId: order?.encounterId ?? null, dispenseNumber, invoiceId: invoice.id, subtotal: total.minus(gstIncluded).toFixed(2), taxTotal: gstIncluded.toFixed(2), total: total.toFixed(2), notes: input.notes ?? null, dispensedById: ctx.userId },
+        });
+        await tx.dispenseItem.createMany({
+          data: lines.map((l, idx) => ({ id: l.id, tenantId: ctx.tenantId, dispenseId: header.id, lineNo: idx + 1, medicationOrderItemId: l.medicationOrderItemId, medicineId: l.medicineId, batchId: l.batchId, quantity: l.quantity, unitPrice: l.unitPrice.toFixed(2), taxPercent: l.gst.toFixed(2), lineTotal: l.total.toFixed(2) })),
+        });
+      }
 
       let receipt: { receiptNumber: string; total: string } | null = null;
-      if (input.payments?.length) {
+      if (input.payments?.length && invoice) {
         const inv = await this.ledger.lock(tx, ctx, invoice.id);
         const r = await this.ledger.receive(tx, ctx, inv, input.payments.map((p) => ({ method: p.method, amount: p.amount, reference: p.reference ?? null })));
         receipt = { receiptNumber: r.receiptNumber, total: fmt(r.total) };
       }
-      await this.audit.record(tx, actorOf(ctx), { action: "PHARMACY_DISPENSED", entityType: "Dispense", entityId: header.id, metadata: { dispenseNumber, lines: lines.length, total: fmt(total), orderNumber: order?.orderNumber ?? null, invoiceNumber: invoice.invoiceNumber } });
+      await this.audit.record(tx, actorOf(ctx), { action: "PHARMACY_DISPENSED", entityType: "Dispense", entityId: header.id, metadata: { dispenseNumber, lines: lines.length, total: fmt(total), orderNumber: order?.orderNumber ?? null, invoiceNumber: invoice?.invoiceNumber ?? null, chargedToAdmission: !!input.chargeToAdmission } });
       if (warnings.length) await this.audit.record(tx, actorOf(ctx), { action: "DISPENSE_ALLERGY_ACKNOWLEDGED", entityType: "Dispense", entityId: header.id, metadata: { allergies: warnings.map((w) => w.allergen) } });
       return { dispense: await this.view(tx, ctx, header.id), receipt };
     });
@@ -199,7 +214,7 @@ export class DispensingService {
     return this.idempotency.run(ctx.tenantId, `DISPENSE_RETURN:${dispenseId}`, key, input, async (tx) => {
       const d = await tx.dispense.findFirst({ where: { id: dispenseId, tenantId: ctx.tenantId, facilityId: ctx.facilityId }, include: { items: true } });
       if (!d) throw new DomainError("NOT_FOUND", "Resource not found", 404);
-      if (!d.invoiceId) throw new DomainError("INVALID_STATE", "This dispense has no invoice to credit", 409);
+      if (!d.invoiceId) return this.returnChargedItems(tx, ctx, d, input, dispenseId);
       const merged = new Map<string, number>();
       for (const i of input.items) merged.set(i.dispenseItemId, (merged.get(i.dispenseItemId) ?? 0) + i.quantity);
       const inv = await this.ledger.lock(tx, ctx, d.invoiceId);
@@ -219,6 +234,31 @@ export class DispensingService {
       await this.audit.record(tx, actorOf(ctx), { action: "PHARMACY_RETURN", entityType: "Dispense", entityId: dispenseId, metadata: { value: fmt(value), reason: input.reason, creditNoteNumber: credit.row.creditNoteNumber, status } });
       return { creditNoteNumber: credit.row.creditNoteNumber, creditedAmount: fmt(value), dispense: await this.view(tx, ctx, dispenseId) };
     });
+  }
+
+  /** Return of medicines that were charged to an admission: restock, then void and re-post the (still unbilled) charge for what remains. */
+  private async returnChargedItems(tx: Db, ctx: RequestContext, d: Prisma.DispenseGetPayload<{ include: { items: true } }>, input: z.infer<typeof dispenseReturnSchema>, dispenseId: string) {
+    const merged = new Map<string, number>();
+    for (const i of input.items) merged.set(i.dispenseItemId, (merged.get(i.dispenseItemId) ?? 0) + i.quantity);
+    for (const [itemId, quantity] of [...merged.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+      const item = d.items.find((x) => x.id === itemId);
+      if (!item) throw new DomainError("VALIDATION_FAILED", "An item does not belong to this dispense", 400, [{ path: "items", message: "Unknown dispense item" }]);
+      const live = await tx.charge.findFirst({ where: { tenantId: ctx.tenantId, sourceKey: { startsWith: `DISPENSE_ITEM:${itemId}` }, status: "PENDING" } });
+      if (!live) throw new DomainError("INVALID_STATE", "These medicines are already on an invoice. Raise a credit note through billing.", 409);
+      const cap = await tx.dispenseItem.updateMany({ where: { id: itemId, tenantId: ctx.tenantId, returnedQuantity: { lte: item.quantity - quantity } }, data: { returnedQuantity: { increment: quantity } } });
+      if (cap.count !== 1) throw new DomainError("INVALID_AMOUNT", `Only ${item.quantity - item.returnedQuantity} unit(s) of this item can still be returned`, 409);
+      await this.stock.move(tx, ctx, { batchId: item.batchId, medicineId: item.medicineId, type: "PATIENT_RETURN", direction: "IN", quantity, sourceType: "DISPENSE_RETURN", sourceId: dispenseId, reason: input.reason });
+      await tx.charge.updateMany({ where: { id: live.id, tenantId: ctx.tenantId, status: "PENDING" }, data: { status: "VOIDED", voidReason: `Pharmacy return: ${input.reason}`, voidedById: ctx.userId, voidedAt: new Date() } });
+      const remaining = item.quantity - item.returnedQuantity - quantity;
+      if (remaining > 0) {
+        await tx.charge.create({ data: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: d.patientId, admissionId: live.admissionId, type: "MEDICINE", description: live.description, quantity: remaining.toString(), unitPrice: live.unitPrice.toFixed(2), taxPercent: "0", sourceKey: `DISPENSE_ITEM:${itemId}:R${item.returnedQuantity + quantity}`, chargedById: ctx.userId } });
+      }
+    }
+    const after = await tx.dispenseItem.findMany({ where: { tenantId: ctx.tenantId, dispenseId } });
+    const status = after.every((i) => i.returnedQuantity === i.quantity) ? "RETURNED" : "PARTIALLY_RETURNED";
+    await tx.dispense.updateMany({ where: { id: dispenseId, tenantId: ctx.tenantId }, data: { status } });
+    await this.audit.record(tx, actorOf(ctx), { action: "PHARMACY_RETURN", entityType: "Dispense", entityId: dispenseId, metadata: { reason: input.reason, status, chargedToAdmission: true } });
+    return { creditNoteNumber: null, creditedAmount: "0.00", dispense: await this.view(tx, ctx, dispenseId) };
   }
 
   async get(ctx: RequestContext, id: string) {

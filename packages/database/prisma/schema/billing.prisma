@@ -26,6 +26,7 @@ model Service {
 
   facility Facility      @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
   lines    InvoiceLine[]
+  charges  Charge[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, code])
@@ -86,6 +87,7 @@ model Invoice {
   refunds     Refund[]
   creditNotes CreditNote[]
   dispenses   Dispense[]
+  charges     Charge[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, invoiceNumber])

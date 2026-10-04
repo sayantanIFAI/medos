@@ -40,6 +40,7 @@ model Encounter {
   medicationOrders MedicationOrder[]
   invoices     Invoice[]
   dispenses    Dispense[]
+  admission    Admission?
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, id])

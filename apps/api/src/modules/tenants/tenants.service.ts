@@ -61,7 +61,7 @@ export class TenantsService {
       const roleIds = new Map<string, string>();
       for (const [name, perms] of Object.entries(SYSTEM_ROLES)) {
         const role = await tx.role.create({ data: { tenantId: tenant.id, name, isSystem: true } });
-        await tx.rolePermission.createMany({ data: perms.map((permission) => ({ tenantId: tenant.id, roleId: role.id, permission })) });
+        await tx.rolePermission.createMany({ data: [...new Set(perms)].map((permission) => ({ tenantId: tenant.id, roleId: role.id, permission })) });
         roleIds.set(name, role.id);
       }
       // Tenant administrators also get every permission needed to configure and oversee clinical staff.

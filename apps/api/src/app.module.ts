@@ -33,6 +33,10 @@ import { InventoryService } from "./modules/pharmacy/inventory.service";
 import { MedicinesService } from "./modules/pharmacy/medicines.service";
 import { PharmacyController } from "./modules/pharmacy/pharmacy.controller";
 import { StockService } from "./modules/pharmacy/stock.service";
+import { AdmissionsService } from "./modules/ipd/admissions.service";
+import { ChargesService } from "./modules/ipd/charges.service";
+import { IpdController } from "./modules/ipd/ipd.controller";
+import { WardsService } from "./modules/ipd/wards.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -56,7 +60,7 @@ export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
   EncountersController, AppointmentsController, QueueController, VitalsController,
-  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController,
+  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController,
 ];
 
 @Module({
@@ -69,11 +73,12 @@ export const CONTROLLERS = [
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
     StockService, MedicinesService, InventoryService, DispensingService,
+    WardsService, AdmissionsService, ChargesService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
-  exports: [PrismaService, NumberingService, AuditService, PasswordService, TenantsService, IdempotencyService, EncountersService],
+  exports: [PrismaService, NumberingService, AuditService, PasswordService, TenantsService, IdempotencyService, EncountersService, AdmissionsService, ChargesService],
 })
 export class AppModule {}

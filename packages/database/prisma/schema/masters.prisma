@@ -18,6 +18,7 @@ model Department {
   encounters    Encounter[]
   appointments  Appointment[]
   queueEntries  QueueEntry[]
+  admissions    Admission[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, code])
@@ -45,6 +46,7 @@ model Practitioner {
   schedules    PractitionerSchedule[]
   appointments Appointment[]
   queueEntries QueueEntry[]
+  admissions   Admission[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, userId])

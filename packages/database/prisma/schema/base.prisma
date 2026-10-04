@@ -71,6 +71,8 @@ model Facility {
   batches         MedicineBatch[]
   purchases       Purchase[]
   dispenses       Dispense[]
+  wards           Ward[]
+  admissions      Admission[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])

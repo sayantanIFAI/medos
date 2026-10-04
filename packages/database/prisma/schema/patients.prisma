@@ -68,6 +68,8 @@ model Patient {
   medicationOrders MedicationOrder[]
   invoices     Invoice[]
   dispenses    Dispense[]
+  admissions   Admission[]
+  charges      Charge[]
 
   @@unique([tenantId, id])
   @@index([tenantId, mobile])
