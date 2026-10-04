@@ -1,0 +1,175 @@
+// ───────────────────────── Stage 9: encounters ─────────────────────────
+
+enum EncounterType {
+  OPD
+  IPD
+}
+
+enum EncounterStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Encounter {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String          @db.Uuid
+  facilityId      String          @db.Uuid
+  patientId       String          @db.Uuid
+  encounterNumber String
+  type            EncounterType
+  status          EncounterStatus @default(ACTIVE)
+  departmentId    String?         @db.Uuid
+  practitionerId  String?         @db.Uuid
+  startedAt       DateTime        @default(now()) @db.Timestamptz(3)
+  endedAt         DateTime?       @db.Timestamptz(3)
+  cancelReason    String?
+  createdById     String          @db.Uuid
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
+
+  facility     Facility      @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  patient      Patient       @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  department   Department?   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  practitioner Practitioner? @relation(fields: [practitionerId], references: [id], onDelete: Restrict)
+  appointment  Appointment?
+  queueEntry   QueueEntry?
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, facilityId, id])
+  @@unique([tenantId, facilityId, encounterNumber])
+  @@index([tenantId, patientId, startedAt(sort: Desc)])
+  @@index([tenantId, facilityId, type, status])
+}
+
+// ───────────────────────── Stage 10: schedules and appointments ─────────────────────────
+
+enum AppointmentType {
+  CONSULTATION
+  FOLLOW_UP
+  PROCEDURE
+}
+
+enum AppointmentSource {
+  SCHEDULED
+  WALK_IN
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CHECKED_IN
+  WAITING
+  IN_CONSULTATION
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+model PractitionerSchedule {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String       @db.Uuid
+  facilityId     String       @db.Uuid
+  practitionerId String       @db.Uuid
+  /// 0 = Sunday ... 6 = Saturday, in the facility's timezone.
+  dayOfWeek      Int
+  /// Minutes after local midnight.
+  startMinute    Int
+  endMinute      Int
+  slotMinutes    Int          @default(15)
+  status         ActiveStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+
+  facility     Facility     @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  practitioner Practitioner @relation(fields: [practitionerId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, facilityId, practitionerId, dayOfWeek])
+}
+
+model Appointment {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String            @db.Uuid
+  facilityId       String            @db.Uuid
+  patientId        String            @db.Uuid
+  practitionerId   String            @db.Uuid
+  departmentId     String?           @db.Uuid
+  startAt          DateTime          @db.Timestamptz(3)
+  endAt            DateTime          @db.Timestamptz(3)
+  type             AppointmentType   @default(CONSULTATION)
+  source           AppointmentSource @default(SCHEDULED)
+  status           AppointmentStatus @default(BOOKED)
+  notes            String?
+  /// True when an authorised user deliberately booked over another appointment (or for a walk-in).
+  overbooked       Boolean           @default(false)
+  overbookReason   String?
+  cancelReason     String?
+  encounterId      String?           @unique @db.Uuid
+  createdById      String            @db.Uuid
+  version          Int               @default(1)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime          @updatedAt @db.Timestamptz(3)
+
+  facility     Facility     @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  patient      Patient      @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  practitioner Practitioner @relation(fields: [practitionerId], references: [id], onDelete: Restrict)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  encounter    Encounter?   @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+  queueEntry   QueueEntry?
+
+  @@unique([tenantId, id])
+  @@index([tenantId, facilityId, startAt])
+  @@index([tenantId, practitionerId, startAt])
+  @@index([tenantId, patientId, startAt])
+}
+
+// ───────────────────────── Stage 11: OPD queue ─────────────────────────
+
+enum QueuePriority {
+  NORMAL
+  PRIORITY
+  EMERGENCY
+}
+
+enum QueueStatus {
+  WAITING
+  CALLED
+  IN_CONSULTATION
+  COMPLETED
+  SKIPPED
+  CANCELLED
+}
+
+model QueueEntry {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String        @db.Uuid
+  facilityId            String        @db.Uuid
+  encounterId           String        @unique @db.Uuid
+  patientId             String        @db.Uuid
+  practitionerId        String        @db.Uuid
+  departmentId          String?       @db.Uuid
+  appointmentId         String?       @unique @db.Uuid
+  /// Facility-local calendar date the token belongs to.
+  tokenDate             DateTime      @db.Date
+  tokenNumber           Int
+  priority              QueuePriority @default(NORMAL)
+  status                QueueStatus   @default(WAITING)
+  checkedInAt           DateTime      @default(now()) @db.Timestamptz(3)
+  calledAt              DateTime?     @db.Timestamptz(3)
+  consultationStartedAt DateTime?     @db.Timestamptz(3)
+  completedAt           DateTime?     @db.Timestamptz(3)
+  createdById           String        @db.Uuid
+  version               Int           @default(1)
+  updatedAt             DateTime      @updatedAt @db.Timestamptz(3)
+
+  facility     Facility     @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  patient      Patient      @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  practitioner Practitioner @relation(fields: [practitionerId], references: [id], onDelete: Restrict)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  encounter    Encounter    @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, facilityId, practitionerId, tokenDate, tokenNumber])
+  @@index([tenantId, facilityId, tokenDate, status])
+  @@index([tenantId, practitionerId, tokenDate, status])
+}

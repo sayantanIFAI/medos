@@ -15,6 +15,9 @@ model Department {
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   facility      Facility       @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
   practitioners Practitioner[]
+  encounters    Encounter[]
+  appointments  Appointment[]
+  queueEntries  QueueEntry[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, code])
@@ -38,6 +41,10 @@ model Practitioner {
   facility   Facility    @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
   user       User?       @relation(fields: [userId], references: [id], onDelete: Restrict)
   department Department? @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  encounters   Encounter[]
+  schedules    PractitionerSchedule[]
+  appointments Appointment[]
+  queueEntries QueueEntry[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, userId])

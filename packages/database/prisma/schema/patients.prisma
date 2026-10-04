@@ -57,7 +57,10 @@ model Patient {
   updatedAt              DateTime     @updatedAt @db.Timestamptz(3)
 
   facility    Facility            @relation(fields: [tenantId, registeredFacilityId], references: [tenantId, id], onDelete: Restrict)
-  identifiers PatientIdentifier[]
+  identifiers  PatientIdentifier[]
+  encounters   Encounter[]
+  appointments Appointment[]
+  queueEntries QueueEntry[]
 
   @@unique([tenantId, id])
   @@index([tenantId, mobile])

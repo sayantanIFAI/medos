@@ -59,6 +59,10 @@ model Facility {
   departments     Department[]
   practitioners   Practitioner[]
   patients        Patient[]
+  encounters      Encounter[]
+  schedules       PractitionerSchedule[]
+  appointments    Appointment[]
+  queueEntries    QueueEntry[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])

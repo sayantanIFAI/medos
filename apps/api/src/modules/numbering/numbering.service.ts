@@ -62,6 +62,19 @@ export class NumberingService {
 
     const year = yearIn(facility.timezone, at);
     const periodKey = cfg.resetPolicy === "YEARLY" ? year : "";
+    const seq = await this.counter(db, tenantId, facilityId, type, periodKey);
+
+    return cfg.pattern
+      .replaceAll("{FACILITY}", facility.code)
+      .replaceAll("{YEAR}", year)
+      .replaceAll("{SEQ}", seq.toString().padStart(cfg.padding, "0"));
+  }
+
+  /**
+   * Raw atomic counter for (tenant, facility, type, periodKey), e.g. daily queue tokens per practitioner.
+   * Same concurrency guarantees and transaction requirements as next().
+   */
+  async counter(db: Db, tenantId: string, facilityId: string, type: string, periodKey: string): Promise<bigint> {
     const rows = await db.$queryRaw<{ lastValue: bigint }[]>`
       INSERT INTO "NumberSequence" ("tenantId", "facilityId", "type", "periodKey", "lastValue")
       VALUES (${tenantId}::uuid, ${facilityId}::uuid, ${type}, ${periodKey}, 1)
@@ -70,11 +83,7 @@ export class NumberingService {
       RETURNING "lastValue"`;
     const seq = rows[0]?.lastValue;
     if (seq === undefined) throw new DomainError("INTERNAL_ERROR", "Sequence allocation failed", 500);
-
-    return cfg.pattern
-      .replaceAll("{FACILITY}", facility.code)
-      .replaceAll("{YEAR}", year)
-      .replaceAll("{SEQ}", seq.toString().padStart(cfg.padding, "0"));
+    return seq;
   }
 
   async list(ctx: RequestContext) {

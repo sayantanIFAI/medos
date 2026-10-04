@@ -126,3 +126,25 @@ export async function registerPatient(t: TestApp, token: string, o: Record<strin
   if (r.status !== 201) throw new Error(`registerPatient failed: ${r.status} ${JSON.stringify(r.body)}`);
   return r.body.data as { id: string; mrn: string; version: number };
 }
+export interface TestDoctor { userId: string; token: string; practitionerId: string; departmentId: string }
+
+/** A doctor user with a practitioner record (and a fresh department) at the tenant's primary facility. */
+export async function makeDoctor(t: TestApp, tenant: TestTenant, o: { facilityId?: string } = {}): Promise<TestDoctor> {
+  const facilityId = o.facilityId ?? tenant.facilityId;
+  const user = await t.makeUser(tenant, ["DOCTOR"], { facilityIds: [facilityId] });
+  const department = await t.prisma.department.create({ data: { tenantId: tenant.tenantId, facilityId, name: `Dept ${uniqueWord(5)}`, code: `D${randomBytes(3).toString("hex").toUpperCase()}` } });
+  const practitioner = await t.prisma.practitioner.create({
+    data: { tenantId: tenant.tenantId, facilityId, userId: user.id, departmentId: department.id, displayName: `Dr. ${uniqueWord(6)} ${uniqueWord(7)}`, specialty: "General Medicine" },
+  });
+  return { userId: user.id, token: user.token, practitionerId: practitioner.id, departmentId: department.id };
+}
+
+/** A user whose only role is a custom role holding exactly the listed permissions. */
+export async function makeUserWithPermissions(t: TestApp, tenant: TestTenant, permissions: string[]): Promise<{ id: string; token: string }> {
+  const role = await t.api("post", "/roles", tenant.admin.token).send({ name: `Custom ${uniqueWord(6)}`, permissions });
+  if (role.status !== 201) throw new Error(`role create failed: ${JSON.stringify(role.body)}`);
+  const user = await t.makeUser(tenant, []);
+  const r = await t.api("put", `/users/${user.id}/roles`, tenant.admin.token).send({ roleIds: [role.body.data.id] });
+  if (r.status !== 200) throw new Error(`role assign failed: ${JSON.stringify(r.body)}`);
+  return user;
+}

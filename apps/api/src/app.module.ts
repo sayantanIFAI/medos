@@ -7,6 +7,12 @@ import { AllExceptionsFilter } from "./common/http-pipeline";
 import { IdempotencyService } from "./common/idempotency.service";
 import { PrismaService } from "./common/prisma.service";
 import { RateLimitGuard } from "./common/rate-limit.guard";
+import { AppointmentsController } from "./modules/appointments/appointments.controller";
+import { AppointmentsService } from "./modules/appointments/appointments.service";
+import { EncountersController } from "./modules/encounters/encounters.controller";
+import { EncountersService } from "./modules/encounters/encounters.service";
+import { QueueController } from "./modules/queue/queue.controller";
+import { QueueService } from "./modules/queue/queue.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -29,6 +35,7 @@ import { UsersService } from "./modules/users/users.service";
 export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
+  EncountersController, AppointmentsController, QueueController,
 ];
 
 @Module({
@@ -37,11 +44,12 @@ export const CONTROLLERS = [
     { provide: CONFIG, useFactory: () => loadConfig() },
     PrismaService, AuditService, PasswordService,
     AuthService, TenantsService, FacilitiesService, UsersService, NumberingService, MastersService, PatientsService, IdempotencyService,
+    EncountersService, AppointmentsService, QueueService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
-  exports: [PrismaService, NumberingService, AuditService, PasswordService, TenantsService, IdempotencyService],
+  exports: [PrismaService, NumberingService, AuditService, PasswordService, TenantsService, IdempotencyService, EncountersService],
 })
 export class AppModule {}
