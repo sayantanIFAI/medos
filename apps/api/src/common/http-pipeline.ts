@@ -89,6 +89,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (exception.code === "P2002") {
         status = 409;
         body = { error: { code: "CONFLICT", message: "A record with these values already exists", requestId } };
+      } else if (exception.code === "P2034") {
+        status = 409;
+        body = { error: { code: "CONFLICT", message: "The system was busy with a conflicting update. Please try again.", requestId } };
       } else if (exception.code === "P2025") {
         status = 404;
         body = { error: { code: "NOT_FOUND", message: "Resource not found", requestId } };

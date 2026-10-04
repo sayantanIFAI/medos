@@ -123,6 +123,14 @@ export class AppointmentsService {
     private readonly idempotency: IdempotencyService,
   ) {}
 
+  /**
+   * Serialises concurrent bookings that touch the same practitioner or patient. The exclusion constraints still
+   * guarantee correctness; the advisory locks (released at commit) prevent them from deadlocking each other.
+   */
+  private async lockBooking(tx: Db, ...keys: string[]): Promise<void> {
+    for (const k of [...new Set(keys)].sort()) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${k}, 0))`;
+  }
+
   private async tz(db: Db, ctx: RequestContext): Promise<string> {
     const f = await db.facility.findFirstOrThrow({ where: { id: ctx.facilityId, tenantId: ctx.tenantId }, select: { timezone: true } });
     return f.timezone;
@@ -212,6 +220,7 @@ export class AppointmentsService {
     const endAt = new Date(input.startAt.getTime() + input.durationMinutes * 60_000);
     try {
       return await this.prisma.$transaction(async (tx) => {
+        await this.lockBooking(tx, `practitioner:${input.practitionerId}`, `patient:${input.patientId}`);
         const tz = await this.tz(tx, ctx);
         const practitioner = await this.assertPractitioner(tx, ctx, input.practitionerId, true);
         await this.assertPatient(tx, ctx, input.patientId);
@@ -244,6 +253,7 @@ export class AppointmentsService {
         const existing = await tx.appointment.findFirst({ where: { id, tenantId: ctx.tenantId, facilityId: ctx.facilityId } });
         if (!existing) throw new DomainError("NOT_FOUND", "Resource not found", 404);
         if (existing.status !== "BOOKED") throw new DomainError("APPOINTMENT_INVALID_STATE", "Only booked appointments can be rescheduled", 409);
+        await this.lockBooking(tx, `practitioner:${existing.practitionerId}`, `practitioner:${input.practitionerId ?? existing.practitionerId}`, `patient:${existing.patientId}`);
         const practitionerId = input.practitionerId ?? existing.practitionerId;
         const practitioner = await this.assertPractitioner(tx, ctx, practitionerId, true);
         const startAt = input.startAt ?? existing.startAt;
@@ -319,6 +329,7 @@ export class AppointmentsService {
     if (input.priority !== "NORMAL" && !ctx.permissions.has("QUEUE_MANAGE")) throw new DomainError("FORBIDDEN", "You do not have permission to set queue priority", 403);
     try {
       const { result, replayed } = await this.idempotency.run(ctx.tenantId, "WALK_IN", idempotencyKey, input, async (tx) => {
+        await this.lockBooking(tx, `practitioner:${input.practitionerId}`, `patient:${input.patientId}`);
         const tz = await this.tz(tx, ctx);
         const practitioner = await this.assertPractitioner(tx, ctx, input.practitionerId, true);
         await this.assertPatient(tx, ctx, input.patientId);
