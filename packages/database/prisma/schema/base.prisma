@@ -63,6 +63,9 @@ model Facility {
   schedules       PractitionerSchedule[]
   appointments    Appointment[]
   queueEntries    QueueEntry[]
+  services        Service[]
+  invoices        Invoice[]
+  cashierShifts   CashierShift[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])

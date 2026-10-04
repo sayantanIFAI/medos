@@ -22,6 +22,12 @@ import { ConsultationsController } from "./modules/clinical/consultations.contro
 import { ConsultationsService } from "./modules/clinical/consultations.service";
 import { PrescriptionsController } from "./modules/prescriptions/prescriptions.controller";
 import { PrescriptionsService } from "./modules/prescriptions/prescriptions.service";
+import { BillingController } from "./modules/billing/billing.controller";
+import { CatalogService } from "./modules/billing/catalog.service";
+import { InvoicesService } from "./modules/billing/invoices.service";
+import { LedgerService } from "./modules/billing/ledger.service";
+import { PaymentsService } from "./modules/billing/payments.service";
+import { ShiftsService } from "./modules/billing/shifts.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -45,7 +51,7 @@ export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
   EncountersController, AppointmentsController, QueueController, VitalsController,
-  AllergiesController, ConsultationsController, PrescriptionsController,
+  AllergiesController, ConsultationsController, PrescriptionsController, BillingController,
 ];
 
 @Module({
@@ -56,6 +62,7 @@ export const CONTROLLERS = [
     AuthService, TenantsService, FacilitiesService, UsersService, NumberingService, MastersService, PatientsService, IdempotencyService,
     EncountersService, AppointmentsService, QueueService, VitalsService,
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
+    CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

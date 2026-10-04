@@ -66,6 +66,7 @@ model Patient {
   diagnoses    Diagnosis[]
   documents    ClinicalDocument[]
   medicationOrders MedicationOrder[]
+  invoices     Invoice[]
 
   @@unique([tenantId, id])
   @@index([tenantId, mobile])
