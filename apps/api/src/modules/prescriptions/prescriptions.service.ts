@@ -13,6 +13,7 @@ import { NumberingService } from "../numbering/numbering.service";
 const optText = (max: number) => z.string().trim().min(1).max(max).optional();
 
 export const orderItemSchema = z.object({
+  medicineId: z.string().uuid().optional(),
   genericName: z.string().trim().min(2).max(120),
   brandName: optText(120),
   strength: optText(40),
@@ -38,7 +39,7 @@ const ORDER_VIEW = {
   items: {
     orderBy: { lineNo: "asc" as const },
     select: {
-      id: true, lineNo: true, genericName: true, brandName: true, strength: true, dosage: true, route: true, frequency: true,
+      id: true, lineNo: true, medicineId: true, genericName: true, brandName: true, strength: true, dosage: true, route: true, frequency: true,
       frequencyText: true, durationDays: true, quantity: true, instructions: true, status: true, dispensedQuantity: true, stopReason: true,
     },
   },
@@ -47,7 +48,7 @@ export type OrderView = Prisma.MedicationOrderGetPayload<{ select: typeof ORDER_
 
 const toItemData = (tenantId: string, orderId: string, items: OrderItemInput[]): Prisma.MedicationOrderItemCreateManyInput[] =>
   items.map((it, i) => ({
-    tenantId, orderId, lineNo: i + 1, genericName: it.genericName, brandName: it.brandName ?? null, strength: it.strength ?? null,
+    tenantId, orderId, lineNo: i + 1, medicineId: it.medicineId ?? null, genericName: it.genericName, brandName: it.brandName ?? null, strength: it.strength ?? null,
     dosage: it.dosage, route: it.route, frequency: it.frequency, frequencyText: it.frequencyText ?? null,
     durationDays: it.durationDays ?? null, quantity: it.quantity ?? null, instructions: it.instructions ?? null,
   }));
@@ -69,6 +70,7 @@ export class PrescriptionsService {
       const enc = await this.encounters.assertActive(tx, ctx, encounterId);
       await this.clinicians.requireActive(tx, ctx);
       await this.assertOpenForPrescribing(tx, ctx, enc.type, encounterId);
+      await this.assertMedicines(tx, ctx, input.items);
 
       let draft = await tx.medicationOrder.findFirst({ where: { tenantId: ctx.tenantId, encounterId, status: "DRAFT" } });
       if (draft && draft.orderedById !== ctx.userId) throw new DomainError("FORBIDDEN", "This draft prescription belongs to another doctor", 403);
@@ -139,6 +141,7 @@ export class PrescriptionsService {
     if (current.some((o) => o.items.some((i) => i.dispensedQuantity > 0))) {
       throw new DomainError("INVALID_STATE", "Some medicines were already dispensed. Stop those items instead of replacing the prescription.", 409);
     }
+    await this.assertMedicines(tx, ctx, items);
     const warnings = await this.warningsFor(tx, ctx, patientId, items.flatMap((i) => [i.genericName, ...(i.brandName ? [i.brandName] : [])]));
     if (warnings.length > 0 && !acknowledge) throw new DomainError("ALLERGY_CONFLICT", "A prescribed medicine matches a recorded allergy. Review it, then confirm to continue.", 409, { allergyWarnings: warnings });
 
@@ -174,6 +177,13 @@ export class PrescriptionsService {
   }
 
   // ───── internals ─────
+
+  private async assertMedicines(tx: Db, ctx: RequestContext, items: OrderItemInput[]): Promise<void> {
+    const ids = [...new Set(items.flatMap((i) => (i.medicineId ? [i.medicineId] : [])))];
+    if (ids.length === 0) return;
+    const n = await tx.medicine.count({ where: { id: { in: ids }, tenantId: ctx.tenantId, status: "ACTIVE" } });
+    if (n !== ids.length) throw new DomainError("VALIDATION_FAILED", "A selected medicine does not exist or is inactive", 400, [{ path: "items", message: "Unknown medicine" }]);
+  }
 
   private async assertOpenForPrescribing(tx: Db, ctx: RequestContext, type: "OPD" | "IPD", encounterId: string): Promise<void> {
     if (type !== "OPD") return;

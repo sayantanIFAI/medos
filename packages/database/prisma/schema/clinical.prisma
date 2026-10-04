@@ -200,6 +200,7 @@ model MedicationOrder {
   patient   Patient               @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
   encounter Encounter             @relation(fields: [tenantId, facilityId, encounterId], references: [tenantId, facilityId, id], onDelete: Restrict)
   items     MedicationOrderItem[]
+  dispenses Dispense[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, orderNumber])
@@ -212,6 +213,8 @@ model MedicationOrderItem {
   tenantId          String              @db.Uuid
   orderId           String              @db.Uuid
   lineNo            Int
+  /// Optional link to the pharmacy master; free-text prescribing stays possible.
+  medicineId        String?             @db.Uuid
   genericName       String
   brandName         String?
   strength          String?
@@ -229,7 +232,8 @@ model MedicationOrderItem {
   stoppedById       String?             @db.Uuid
   stopReason        String?
 
-  order MedicationOrder @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
+  order    MedicationOrder @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
+  medicine Medicine?       @relation(fields: [medicineId], references: [id], onDelete: Restrict)
 
   @@unique([tenantId, id])
   @@unique([orderId, lineNo])

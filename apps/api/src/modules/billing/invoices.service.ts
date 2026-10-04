@@ -216,6 +216,35 @@ export class InvoicesService {
     });
   }
 
+  // ───── internal issuing ─────
+  /**
+   * Internal: creates and issues an invoice in the caller's transaction for operational sources (pharmacy dispense, IPD final bill).
+   * Lines carry sourceType/sourceId so the same operational record can never be billed twice (unique index).
+   */
+  async createIssuedFromSource(
+    tx: Db, ctx: RequestContext,
+    input: { patientId: string; encounterId: string | null; kind: "OPD" | "IPD" | "PHARMACY" | "OTHER"; notes?: string; lines: { description: string; quantity: Decimal; unitPrice: Decimal; taxPercent: Decimal; sourceType: string; sourceId: string }[] },
+  ) {
+    const amounts = input.lines.map((l) => computeLine({ quantity: l.quantity, unitPrice: l.unitPrice, discountAmount: 0, taxPercent: l.taxPercent }));
+    const totals = computeTotals(amounts);
+    if (!totals.total.gt(0)) throw new DomainError("INVALID_AMOUNT", "An invoice must have a total greater than zero", 400);
+    const inv = await tx.invoice.create({
+      data: {
+        tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, encounterId: input.encounterId, kind: input.kind, notes: input.notes ?? null, createdById: ctx.userId,
+        subtotal: totals.subtotal.toFixed(2), discountTotal: "0.00", taxTotal: totals.taxTotal.toFixed(2), total: totals.total.toFixed(2),
+      },
+    });
+    await tx.invoiceLine.createMany({
+      data: input.lines.map((l, i) => ({
+        tenantId: ctx.tenantId, invoiceId: inv.id, lineNo: i + 1, description: l.description, quantity: l.quantity.toString(), unitPrice: l.unitPrice.toFixed(2), discountAmount: "0.00",
+        taxPercent: l.taxPercent.toFixed(2), taxAmount: (amounts[i] as LineAmounts).tax.toFixed(2), lineTotal: (amounts[i] as LineAmounts).total.toFixed(2), sourceType: l.sourceType, sourceId: l.sourceId,
+      })),
+    });
+    const invoiceNumber = await this.numbering.next(tx, ctx.tenantId, ctx.facilityId, "INVOICE");
+    await tx.invoice.updateMany({ where: { id: inv.id, tenantId: ctx.tenantId, status: "DRAFT" }, data: { status: "ISSUED", invoiceNumber, issuedAt: new Date(), issuedById: ctx.userId, version: { increment: 1 } } });
+    await this.audit.record(tx, actorOf(ctx), { action: "INVOICE_ISSUED", entityType: "Invoice", entityId: inv.id, metadata: { invoiceNumber, total: fmt(totals.total), source: input.lines[0]?.sourceType ?? null } });
+    return { id: inv.id, invoiceNumber, total: totals.total };
+  }
   // ───── internals ─────
 
   async view(db: Db, ctx: RequestContext, id: string) {

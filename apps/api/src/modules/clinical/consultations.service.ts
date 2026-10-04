@@ -313,7 +313,7 @@ export class ConsultationsService {
     const orders: OrderView[] = await tx.medicationOrder.findMany({
       where: { tenantId: ctx.tenantId, encounterId, status: "SIGNED" }, orderBy: { signedAt: "asc" },
       select: { id: true, orderNumber: true, status: true, encounterId: true, patientId: true, orderedById: true, signedById: true, signedAt: true, supersededAtVersion: true, createdAt: true,
-        items: { orderBy: { lineNo: "asc" }, select: { id: true, lineNo: true, genericName: true, brandName: true, strength: true, dosage: true, route: true, frequency: true, frequencyText: true, durationDays: true, quantity: true, instructions: true, status: true, dispensedQuantity: true, stopReason: true } } },
+        items: { orderBy: { lineNo: "asc" }, select: { id: true, lineNo: true, medicineId: true, genericName: true, brandName: true, strength: true, dosage: true, route: true, frequency: true, frequencyText: true, durationDays: true, quantity: true, instructions: true, status: true, dispensedQuantity: true, stopReason: true } } },
     });
     return {
       diagnoses,

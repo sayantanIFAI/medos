@@ -47,6 +47,8 @@ export type LiveStatus = "ISSUED" | "PARTIALLY_PAID" | "PAID";
 
 export function deriveStatus(s: MoneyState): LiveStatus {
   const net = netReceived(s);
+  // Fully credited (e.g. every item returned): nothing is owed, so the invoice is settled.
+  if (effectiveTotal(s).lte(0)) return "PAID";
   if (net.lte(0)) return "ISSUED";
   return net.lt(effectiveTotal(s)) ? "PARTIALLY_PAID" : "PAID";
 }

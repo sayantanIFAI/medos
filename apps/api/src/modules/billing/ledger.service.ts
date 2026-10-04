@@ -106,10 +106,10 @@ export class LedgerService {
     return { row, refundedTotal: inv.refundedTotal.plus(r.amount) };
   }
 
-  async credit(tx: Db, ctx: RequestContext, inv: InvoiceMoney, c: { amount: Decimal; reason: string }) {
+  async credit(tx: Db, ctx: RequestContext, inv: InvoiceMoney, c: { amount: Decimal; reason: string }, opts: { allowFull?: boolean } = {}) {
     if (!["ISSUED", "PARTIALLY_PAID", "PAID"].includes(inv.status)) throw new DomainError("INVALID_STATE", "Credit notes apply only to issued invoices", 409);
     const remaining = inv.total.minus(inv.creditedTotal);
-    if (c.amount.gte(remaining)) {
+    if (c.amount.gt(remaining) || (!opts.allowFull && c.amount.gte(remaining))) {
       throw new DomainError("INVALID_AMOUNT", `A credit note must leave a balance on the invoice (up to ${fmt(remaining.minus(0.01))}). To remove the whole invoice, cancel it.`, 409, { maxCredit: fmt(Decimal.max(0, remaining.minus(0.01))) });
     }
     const creditNoteNumber = await this.numbering.next(tx, ctx.tenantId, ctx.facilityId, "CREDIT_NOTE");

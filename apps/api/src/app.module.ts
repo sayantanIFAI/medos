@@ -28,6 +28,11 @@ import { InvoicesService } from "./modules/billing/invoices.service";
 import { LedgerService } from "./modules/billing/ledger.service";
 import { PaymentsService } from "./modules/billing/payments.service";
 import { ShiftsService } from "./modules/billing/shifts.service";
+import { DispensingService } from "./modules/pharmacy/dispensing.service";
+import { InventoryService } from "./modules/pharmacy/inventory.service";
+import { MedicinesService } from "./modules/pharmacy/medicines.service";
+import { PharmacyController } from "./modules/pharmacy/pharmacy.controller";
+import { StockService } from "./modules/pharmacy/stock.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -51,7 +56,7 @@ export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
   EncountersController, AppointmentsController, QueueController, VitalsController,
-  AllergiesController, ConsultationsController, PrescriptionsController, BillingController,
+  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController,
 ];
 
 @Module({
@@ -63,6 +68,7 @@ export const CONTROLLERS = [
     EncountersService, AppointmentsService, QueueService, VitalsService,
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
+    StockService, MedicinesService, InventoryService, DispensingService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

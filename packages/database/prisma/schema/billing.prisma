@@ -85,6 +85,7 @@ model Invoice {
   receipts    Receipt[]
   refunds     Refund[]
   creditNotes CreditNote[]
+  dispenses   Dispense[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, invoiceNumber])
