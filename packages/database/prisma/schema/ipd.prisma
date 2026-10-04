@@ -106,6 +106,10 @@ model Admission {
   department  Department?     @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   assignments BedAssignment[]
   charges     Charge[]
+  nursingNotes NursingNote[]
+  nursingTasks NursingTask[]
+  administrations MedicationAdministration[]
+  intakeOutputs IntakeOutput[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, id])

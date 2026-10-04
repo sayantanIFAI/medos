@@ -37,6 +37,9 @@ import { AdmissionsService } from "./modules/ipd/admissions.service";
 import { ChargesService } from "./modules/ipd/charges.service";
 import { IpdController } from "./modules/ipd/ipd.controller";
 import { WardsService } from "./modules/ipd/wards.service";
+import { MarService } from "./modules/nursing/mar.service";
+import { NursingController } from "./modules/nursing/nursing.controller";
+import { NursingService } from "./modules/nursing/nursing.service";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -60,7 +63,7 @@ export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
   EncountersController, AppointmentsController, QueueController, VitalsController,
-  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController,
+  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController, NursingController,
 ];
 
 @Module({
@@ -73,7 +76,7 @@ export const CONTROLLERS = [
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
     StockService, MedicinesService, InventoryService, DispensingService,
-    WardsService, AdmissionsService, ChargesService,
+    WardsService, AdmissionsService, ChargesService, NursingService, MarService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

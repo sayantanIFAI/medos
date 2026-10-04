@@ -70,6 +70,10 @@ model Patient {
   dispenses    Dispense[]
   admissions   Admission[]
   charges      Charge[]
+  nursingNotes NursingNote[]
+  nursingTasks NursingTask[]
+  administrations MedicationAdministration[]
+  intakeOutputs IntakeOutput[]
 
   @@unique([tenantId, id])
   @@index([tenantId, mobile])

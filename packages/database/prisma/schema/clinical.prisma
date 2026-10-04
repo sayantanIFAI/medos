@@ -234,6 +234,7 @@ model MedicationOrderItem {
 
   order    MedicationOrder @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
   medicine Medicine?       @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+  administrations MedicationAdministration[]
 
   @@unique([tenantId, id])
   @@unique([orderId, lineNo])
