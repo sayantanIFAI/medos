@@ -47,7 +47,6 @@ const optionalFields = [
   "lastName", "dateOfBirth", "estimatedAgeYears", "mobile", "addressLine", "city", "district", "state", "postalCode",
   "guardianName", "guardianRelation", "guardianMobile", "emergencyContactName", "emergencyContactMobile", "bloodGroup",
 ] as const;
-const opt = Object.fromEntries(optionalFields.map((k) => [k, true])) as { [K in (typeof optionalFields)[number]]: true };
 
 function ageRule(v: { dateOfBirth?: unknown; estimatedAgeYears?: unknown }, c: z.RefinementCtx, required: boolean): void {
   const hasDob = v.dateOfBirth !== undefined && v.dateOfBirth !== null;
