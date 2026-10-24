@@ -53,3 +53,7 @@ None yet. Stage 0 adds no code and no dependencies. (`D:\Claude\package.json` at
 | Package | Version | Licence | Why needed | Added in stage |
 |---|---|---|---|---|
 | — | — | — | — | — |
+
+## Audit result (2026-10-05)
+
+`pnpm licenses:audit` (scripts/license-audit.mjs) scanned ~640 installed packages: MIT, ISC, Apache-2.0, BSD-2/3-Clause, 0BSD, BlueOak-1.0.0, (MIT OR CC0-1.0), Python-2.0 (a permissive PSF licence, build-time only) and CC-BY-4.0 (data package, build-time only). **No GPL, AGPL, SSPL or unknown licences.** Redis and MinIO are not used (ADR-009). Playwright and Chromium are used for tests only (Apache-2.0 / BSD).

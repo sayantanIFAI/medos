@@ -10,3 +10,9 @@ coverage
 *.log
 
 dist-test
+
+# web / e2e artefacts
+apps/web/.next
+apps/web/test-results
+apps/web/playwright-report
+apps/web/next-env.d.ts

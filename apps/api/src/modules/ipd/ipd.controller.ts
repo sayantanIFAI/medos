@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Headers, HttpCode, Param, Patch, Post, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
+import { Feature } from "../../common/feature.guard";
 import { AnyAuthenticated, Ctx, id, paginate, parse, RequirePermissions } from "../../common/http";
 import { parseIdempotencyKey } from "../../common/idempotency.service";
 import type { RequestContext } from "../../common/request-context";
@@ -13,6 +14,7 @@ import {
 const wardQuery = z.object({ includeInactive: z.enum(["true", "false"]).default("false").transform((v) => v === "true") }).strict();
 const roomQuery = z.object({ wardId: z.string().uuid().optional() }).strict();
 
+@Feature("IPD_ENABLED")
 @Controller()
 export class IpdController {
   constructor(private readonly wards: WardsService, private readonly admissions: AdmissionsService, private readonly charges: ChargesService) {}

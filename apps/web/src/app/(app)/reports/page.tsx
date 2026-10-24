@@ -1,0 +1,95 @@
+"use client";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Gate } from "@/components/gate";
+import { todayIn } from "@/components/pickers";
+import { Button, Card, ErrorNote, Input, KV, PageHeader, Select, Spinner, Table, Td } from "@/components/ui";
+import { reportToCsv } from "@/lib/csv";
+import { api } from "@/lib/api";
+import { useMe } from "@/lib/me";
+
+interface ReportDef { id: string; label: string; path: string; ranged: boolean; feature?: "PHARMACY_ENABLED" | "IPD_ENABLED"; extra?: Record<string, string> }
+const REPORTS: ReportDef[] = [
+  { id: "opd-daily", label: "OPD visits per day", path: "opd/daily", ranged: true },
+  { id: "opd-doctor", label: "OPD visits by doctor", path: "opd/by-doctor", ranged: true },
+  { id: "opd-dept", label: "OPD visits by department", path: "opd/by-department", ranged: true },
+  { id: "collections", label: "Collections and payment modes", path: "collections", ranged: true },
+  { id: "shifts", label: "Cashier shifts", path: "cashier-shifts", ranged: true },
+  { id: "outstanding", label: "Outstanding bills", path: "outstanding-invoices", ranged: false },
+  { id: "cur-adm", label: "Current admissions", path: "ipd/current-admissions", ranged: false, feature: "IPD_ENABLED" },
+  { id: "adm-dis", label: "Admissions and discharges", path: "ipd/admissions-discharges", ranged: true, feature: "IPD_ENABLED" },
+  { id: "occupancy", label: "Bed occupancy", path: "ipd/bed-occupancy", ranged: false, feature: "IPD_ENABLED" },
+  { id: "sales", label: "Pharmacy sales", path: "pharmacy/sales", ranged: true, feature: "PHARMACY_ENABLED" },
+  { id: "stock", label: "Current pharmacy stock", path: "pharmacy/stock", ranged: false, feature: "PHARMACY_ENABLED" },
+  { id: "low", label: "Low stock", path: "pharmacy/low-stock", ranged: false, feature: "PHARMACY_ENABLED" },
+  { id: "expiry", label: "Near-expiry stock", path: "pharmacy/near-expiry", ranged: false, feature: "PHARMACY_ENABLED" },
+];
+
+const humanize = (k: string) => k.replace(/([A-Z])/g, " $1").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+const isPrim = (v: unknown): v is string | number | boolean | null => v === null || ["string", "number", "boolean"].includes(typeof v);
+const cell = (v: unknown): string => (v === null || v === undefined ? "—" : v instanceof Object ? "" : /^\d{4}-\d{2}-\d{2}T/.test(String(v)) ? new Date(String(v)).toLocaleString("en-IN") : String(v));
+
+/** Generic renderer: scalar fields become a summary, arrays of objects become tables. Reports are read-only views of server-computed data. */
+function Render({ data }: { data: Record<string, unknown> }) {
+  const scalars = Object.entries(data).filter(([, v]) => isPrim(v));
+  const objects = Object.entries(data).filter(([, v]) => v && !Array.isArray(v) && typeof v === "object") as [string, Record<string, unknown>][];
+  const arrays = Object.entries(data).filter(([, v]) => Array.isArray(v) && v.length > 0 && typeof v[0] === "object") as [string, Record<string, unknown>[]][];
+  const emptyArrays = Object.entries(data).filter(([, v]) => Array.isArray(v) && v.length === 0);
+  return (
+    <div className="space-y-4">
+      {(scalars.length > 0 || objects.length > 0) && (
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {scalars.map(([k, v]) => <KV key={k} label={humanize(k)}>{cell(v)}</KV>)}
+          {objects.flatMap(([g, o]) => Object.entries(o).filter(([, v]) => isPrim(v)).map(([k, v]) => <KV key={`${g}.${k}`} label={`${humanize(g)} · ${humanize(k)}`}>{cell(v)}</KV>))}
+        </dl>
+      )}
+      {arrays.map(([name, rows]) => {
+        const cols = Object.keys(rows[0] ?? {}).filter((c) => isPrim(rows[0]?.[c]) && !/(^id$|Id$)/.test(c));
+        return (
+          <div key={name}>
+            <h3 className="mb-1 text-sm font-semibold text-slate-700">{humanize(name)}</h3>
+            <Table head={cols.map(humanize)}>{rows.map((r, i) => <tr key={i}>{cols.map((c) => <Td key={c}>{cell(r[c])}</Td>)}</tr>)}</Table>
+          </div>
+        );
+      })}
+      {arrays.length === 0 && emptyArrays.length > 0 && <p className="text-sm text-slate-500">No data for this selection.</p>}
+    </div>
+  );
+}
+
+function download(title: string, base: string, data: Record<string, unknown>) {
+  const blob = new Blob([reportToCsv(title, data)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${base}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export default function ReportsPage() {
+  const { me, features } = useMe();
+  const tz = me.facility?.timezone ?? me.tenant.timezone;
+  const available = REPORTS.filter((r) => !r.feature || features[r.feature]);
+  const [id, setId] = useState(available[0]?.id ?? "opd-daily");
+  const [from, setFrom] = useState(todayIn(tz));
+  const [to, setTo] = useState(todayIn(tz));
+  const [days, setDays] = useState("90");
+  const def = available.find((r) => r.id === id) ?? available[0]!;
+  const q = useQuery({
+    queryKey: ["report", def.id, from, to, days],
+    queryFn: () => api.get<Record<string, unknown>>(`/reports/${def.path}`, def.ranged ? { from, to } : def.id === "expiry" ? { withinDays: days } : undefined),
+  });
+  return (
+    <Gate anyOf={["REPORT_READ"]}>
+      <PageHeader title="Reports" subtitle="Operational reports for your facility" />
+      <Card actions={<>
+        <Select aria-label="Report" className="w-64" value={def.id} onChange={(e) => setId(e.target.value)}>{available.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}</Select>
+        {def.ranged && <><Input type="date" aria-label="From" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="To" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} /></>}
+        {def.id === "expiry" && <Input aria-label="Days" className="w-24" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} />}
+        <Button variant="secondary" disabled={!q.data} onClick={() => download(def.label, def.ranged ? `${def.id}_${from}_${to}` : def.id, q.data!)}>Download CSV</Button>
+      </>}>
+        {q.isLoading ? <Spinner /> : q.error ? <ErrorNote error={q.error} /> : q.data ? <Render data={q.data} /> : null}
+      </Card>
+    </Gate>
+  );
+}

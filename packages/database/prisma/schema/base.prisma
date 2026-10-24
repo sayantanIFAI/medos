@@ -73,6 +73,7 @@ model Facility {
   dispenses       Dispense[]
   wards           Ward[]
   admissions      Admission[]
+  settings        Setting[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])

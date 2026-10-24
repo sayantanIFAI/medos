@@ -169,8 +169,9 @@ export class DispensingService {
       const gstIncluded = lines.reduce((a, l) => a.plus(round2(l.total.times(l.gst).div(new Decimal(100).plus(l.gst)))), new Decimal(0));
       let invoice: { id: string; invoiceNumber: string } | null = null;
       if (input.chargeToAdmission) {
-        const adm = await tx.admission.findFirst({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, status: "ADMITTED" }, select: { id: true } });
+        const adm = await tx.admission.findFirst({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, status: "ADMITTED" }, select: { id: true, finalInvoiceId: true } });
         if (!adm) throw new DomainError("INVALID_STATE", "The patient is not currently admitted, so medicines cannot be charged to an admission", 409);
+        if (adm.finalInvoiceId) throw new DomainError("INVALID_STATE", "The final bill has already been issued; sell the medicines at the counter instead", 409);
         await tx.dispense.create({
           data: { id: header.id, tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, medicationOrderId: order?.id ?? null, encounterId: order?.encounterId ?? null, dispenseNumber, invoiceId: null, subtotal: total.minus(gstIncluded).toFixed(2), taxTotal: gstIncluded.toFixed(2), total: total.toFixed(2), notes: input.notes ?? null, dispensedById: ctx.userId },
         });

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Headers, HttpCode, Param, Patch, Post, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
-import { AnyAuthenticated, Ctx, id, paginate, parse, RequirePermissions } from "../../common/http";
+import { Feature } from "../../common/feature.guard";
+import { Ctx, id, paginate, parse, RequirePermissions } from "../../common/http";
 import { parseIdempotencyKey } from "../../common/idempotency.service";
 import type { RequestContext } from "../../common/request-context";
 import { DispensingService, dispenseListSchema, dispenseReturnSchema, dispenseSchema, queueQuerySchema, suggestSchema } from "./dispensing.service";
@@ -9,7 +10,7 @@ import {
   purchaseReturnSchema, purchaseSchema, stockQuerySchema,
 } from "./inventory.service";
 import {
-  createMedicineSchema, createSupplierSchema, MedicinesService, searchMedicinesSchema, updateMedicineSchema, updateSupplierSchema,
+  createSupplierSchema, MedicinesService, updateSupplierSchema,
 } from "./medicines.service";
 
 function created(res: Response, replayed: boolean): void {
@@ -17,6 +18,7 @@ function created(res: Response, replayed: boolean): void {
   if (replayed) res.setHeader("Idempotent-Replayed", "true");
 }
 
+@Feature("PHARMACY_ENABLED")
 @Controller()
 export class PharmacyController {
   constructor(
@@ -24,28 +26,6 @@ export class PharmacyController {
     private readonly inventory: InventoryService,
     private readonly dispensing: DispensingService,
   ) {}
-
-  // ───── medicine master (searchable by prescribers too) ─────
-
-  @AnyAuthenticated()
-  @Get("medicines")
-  async search(@Ctx() ctx: RequestContext, @Query() query: unknown) {
-    const q = parse(searchMedicinesSchema, query);
-    const { items, total } = await this.medicines.search(ctx, q);
-    return paginate(items, total, q.page, q.pageSize);
-  }
-
-  @RequirePermissions("PHARMACY_MASTERS")
-  @Post("medicines")
-  async createMedicine(@Ctx() ctx: RequestContext, @Body() body: unknown) {
-    return { data: await this.medicines.create(ctx, parse(createMedicineSchema, body)) };
-  }
-
-  @RequirePermissions("PHARMACY_MASTERS")
-  @Patch("medicines/:id")
-  async updateMedicine(@Ctx() ctx: RequestContext, @Param("id") medicineId: string, @Body() body: unknown) {
-    return { data: await this.medicines.update(ctx, id(medicineId), parse(updateMedicineSchema, body)) };
-  }
 
   @RequirePermissions("PHARMACY_READ")
   @Get("pharmacy/medicines/:id/suggest-batches")

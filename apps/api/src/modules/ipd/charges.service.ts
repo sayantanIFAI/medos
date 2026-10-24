@@ -48,6 +48,7 @@ export class ChargesService {
       const adm = await tx.admission.findFirst({ where: { id: admissionId, tenantId: ctx.tenantId, facilityId: ctx.facilityId } });
       if (!adm) throw new DomainError("NOT_FOUND", "Resource not found", 404);
       if (adm.status !== "ADMITTED") throw new DomainError("INVALID_STATE", "Charges can only be added to a current admission", 409);
+      if (adm.finalInvoiceId) throw new DomainError("INVALID_STATE", "The final bill has already been issued", 409);
       let description: string; let unitPrice: Decimal; let taxPercent: Decimal; let serviceId: string | null = null;
       if ("serviceId" in input) {
         const s = await tx.service.findFirst({ where: { id: input.serviceId, tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" } });
@@ -86,6 +87,7 @@ export class ChargesService {
     const adm = await db.admission.findFirst({ where: { id: admissionId, tenantId: ctx.tenantId, facilityId: ctx.facilityId } });
     if (!adm) throw new DomainError("NOT_FOUND", "Resource not found", 404);
     if (adm.status !== "ADMITTED") throw new DomainError("INVALID_STATE", "Bed charges can only be posted for a current admission", 409);
+    if (adm.finalInvoiceId) return { posted: 0, ...(await this.summarise(db, ctx, admissionId)) };
     const run = async (tx: Db) => {
       const tz = (await tx.facility.findFirstOrThrow({ where: { id: ctx.facilityId, tenantId: ctx.tenantId }, select: { timezone: true } })).timezone;
       const assignments = await tx.bedAssignment.findMany({ where: { tenantId: ctx.tenantId, admissionId }, orderBy: { assignedAt: "asc" }, include: { bed: { select: { code: true, ward: { select: { name: true } } } } } });

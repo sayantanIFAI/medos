@@ -9,8 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src --config ../../eslint.config.mjs",
     "test": "echo no-tests",
-    "migrate": "prisma migrate deploy",
-    "seed": "node dist/seed.js"
+    "migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0"

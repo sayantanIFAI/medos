@@ -1,7 +1,7 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { makeDoctor, registerPatient, startApp, uniqueWord, type TestApp, type TestDoctor, type TestTenant } from "../../test/harness";
+import { makeDoctor, makeUserWithPermissions, registerPatient, startApp, uniqueWord, type TestApp, type TestDoctor, type TestTenant } from "../../test/harness";
 
 const key = () => `k-${randomUUID().slice(0, 18)}`;
 const ymd = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
@@ -77,7 +77,8 @@ describe("IPD: wards, beds, admission, transfer, charges", () => {
       assert.equal((await t.api("get", "/wards", rec.token)).status, 200);
       const cashier = await t.makeUser(a, ["CASHIER"]);
       assert.equal((await t.api("get", "/wards", cashier.token)).status, 200, "cashiers read the census for billing");
-      assert.equal((await t.api("get", "/wards", await (async () => (await t.makeUser(a, ["PHARMACIST"])).token)())).status, 403);
+      const noRead = await makeUserWithPermissions(t, a, ["PATIENT_READ"]);
+      assert.equal((await t.api("get", "/wards", noRead.token)).status, 403);
     });
 
     it("beds can change rate (audited) and be retired only when not in use; rate changes never alter past assignments", async () => {
@@ -193,7 +194,8 @@ describe("IPD: wards, beds, admission, transfer, charges", () => {
       const p = await registerPatient(t, rec.token);
       for (const u of [nurse, await t.makeUser(a, ["DOCTOR"]), await t.makeUser(a, ["CASHIER"])]) assert.equal((await admit(p.id, bed.id, {}, u.token)).status, 403);
       assert.equal((await t.api("post", "/admissions").send({})).status, 401);
-      assert.equal((await t.api("get", "/admissions", (await t.makeUser(a, ["PHARMACIST"])).token)).status, 403);
+      const noRead2 = await makeUserWithPermissions(t, a, ["PATIENT_READ"]);
+      assert.equal((await t.api("get", "/admissions", noRead2.token)).status, 403);
     });
 
     it("RELEASE-CRITICAL: two admissions can never occupy the same bed — 12 simultaneous requests, exactly one wins", async () => {
@@ -392,7 +394,8 @@ describe("IPD: wards, beds, admission, transfer, charges", () => {
       assert.equal(bed0.occupant.mrn, p.mrn);
       assert.ok(bed0.occupant.admissionNumber.startsWith("ADM-"));
       assert.equal(board.wards[0].rooms[0].beds.find((x: { code: string }) => x.code === "S1E").occupant, null);
-      assert.equal((await t.api("get", "/beds/board", (await t.makeUser(t2, ["PHARMACIST"])).token)).status, 403);
+      const noRead3 = await makeUserWithPermissions(t, t2, ["PATIENT_READ"]);
+      assert.equal((await t.api("get", "/beds/board", noRead3.token)).status, 403);
       assert.equal((await t.api("get", "/beds/board", rec.token)).body.data.wards.every((x: { name: string }) => x.name !== "Surgical"), true, "no cross-tenant wards on the board");
     });
 

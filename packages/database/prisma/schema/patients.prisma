@@ -65,6 +65,7 @@ model Patient {
   allergies    Allergy[]
   diagnoses    Diagnosis[]
   documents    ClinicalDocument[]
+  files        PatientFile[]
   medicationOrders MedicationOrder[]
   invoices     Invoice[]
   dispenses    Dispense[]

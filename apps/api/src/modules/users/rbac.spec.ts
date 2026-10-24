@@ -152,3 +152,19 @@ describe("RBAC enforcement", () => {
     assert.ok(s.body.data.some((u: { username: string }) => u.username === "admin"));
   });
 });
+
+describe("permission list for the role editor", () => {
+  let t: TestApp;
+  let tenant: TestTenant;
+  before(async () => { t = await startApp(); tenant = await t.makeTenant("perm-list"); });
+  after(async () => { await t.close(); });
+
+  it("administrators get every permission name; others and anonymous callers are refused", async () => {
+    const r = await t.api("get", "/permissions", tenant.admin.token);
+    assert.equal(r.status, 200);
+    assert.deepEqual([...r.body.data].sort(), [...PERMISSIONS].sort());
+    const rec = await t.makeUser(tenant, ["RECEPTIONIST"]);
+    assert.equal((await t.api("get", "/permissions", rec.token)).status, 403);
+    assert.equal((await t.api("get", "/permissions")).status, 401);
+  });
+});

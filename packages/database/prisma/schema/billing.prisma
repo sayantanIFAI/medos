@@ -88,6 +88,7 @@ model Invoice {
   creditNotes CreditNote[]
   dispenses   Dispense[]
   charges     Charge[]
+  finalFor    Admission[] @relation("AdmissionFinalInvoice")
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, invoiceNumber])

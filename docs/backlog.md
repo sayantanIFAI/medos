@@ -55,3 +55,13 @@ Radiology/PACS/DICOM, pathology, blood bank, dialysis, IVF, dental charting, adv
 - Bulk data import (patients, medicines, opening stock, services) — design now keeps pathways open; tooling deferred (CLAUDE.md §47).
 - Credit-note document generation beyond data compatibility.
 - Bengali/Hindi string catalogues (architecture ready in MLP-1, content later).
+
+## 6. Candidate items surfaced while building (unscheduled; see docs/certification.md §5)
+
+- UI gaps: consultation amendment, patient demographics edit, draft-invoice edit, appointment reschedule, stock purchases/returns/adjustments, supplier management, role/permission editor, password reset/change, practitioner schedule editor, nursing tasks, IPD vitals, discharge waiver, report export (CSV/Excel).
+- Patient photo and scanned documents (needs S3-compatible storage, CLAUDE.md §42); stock `TRANSFER` movements.
+- Shared rate limiter and cache (Redis/Valkey) when running more than one API/web instance.
+- PostgreSQL row-level security as defence in depth (G5).
+- Upgrade to NestJS 11 (clears the remaining `pnpm audit` advisory); consider Argon2id (ADR-009).
+- Point-in-time recovery, encrypted backups, scheduled restore drills.
+- Localisation catalogues (Bengali, Hindi); accessibility audit.

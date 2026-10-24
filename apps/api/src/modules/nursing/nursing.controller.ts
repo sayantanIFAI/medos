@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
 import { z } from "zod";
+import { Feature } from "../../common/feature.guard";
 import { Ctx, id, parse, RequirePermissions } from "../../common/http";
 import type { RequestContext } from "../../common/request-context";
 import { administerSchema, dueQuerySchema, generateSchema, MarService, marListSchema, unscheduledSchema } from "./mar.service";
@@ -7,6 +8,7 @@ import { errorReasonSchema, ioSchema, ioTotalsSchema, noteSchema, NursingService
 
 const notesQuery = z.object({ includeErrors: z.enum(["true", "false"]).default("false").transform((v) => v === "true") }).strict();
 
+@Feature("NURSING_ENABLED")
 @Controller()
 export class NursingController {
   constructor(private readonly nursing: NursingService, private readonly mar: MarService) {}

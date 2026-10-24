@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { AnyAuthenticated, Ctx, id, paginate, parse, RateLimit, RequirePermissions } from "../../common/http";
+import { PERMISSIONS } from "@medos/shared";
 import type { RequestContext } from "../../common/request-context";
 import {
   changePasswordSchema, createRoleSchema, createUserSchema, listUsersSchema, resetPasswordSchema,
@@ -61,6 +62,13 @@ export class UsersController {
   @HttpCode(204)
   async resetPassword(@Ctx() ctx: RequestContext, @Param("id") userId: string, @Body() body: unknown): Promise<void> {
     await this.users.resetPassword(ctx, id(userId), parse(resetPasswordSchema, body));
+  }
+
+  /** The permission names a role can hold (for the role editor). */
+  @RequirePermissions("ADMIN_USERS")
+  @Get("permissions")
+  permissions() {
+    return { data: [...PERMISSIONS] };
   }
 
   @RequirePermissions("ADMIN_USERS")

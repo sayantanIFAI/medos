@@ -1,0 +1,193 @@
+"use client";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Gate } from "@/components/gate";
+import { Button, Card, ConfirmButton, ErrorNote, Field, Input, KV, Modal, Notice, PageHeader, Select, Spinner, StatusBadge, Table, Td } from "@/components/ui";
+import { api, newKey, printUrl } from "@/lib/api";
+import { useMe } from "@/lib/me";
+
+interface Invoice {
+  id: string; invoiceNumber: string | null; status: string; kind: string; patientId: string; patientName: string; mrn: string | null; notes: string | null; issuedAt: string | null;
+  subtotal: string; discountTotal: string; taxTotal: string; total: string; paidTotal: string; refundedTotal: string; creditedTotal: string; netReceived: string; balanceDue: string; refundable: string;
+  version: number;
+  lines: { lineNo: number; serviceId?: string | null; description: string; quantity: string; unitPrice: string; discountAmount: string; taxPercent: string; lineTotal: string }[];
+  receipts: { id: string; receiptNumber: string; total: string; receivedAt: string; payments: { method: string; amount: string; reference: string | null }[] }[];
+  refunds: { id: string; refundNumber: string; method: string; amount: string; reason: string; createdAt: string }[];
+  creditNotes: { id: string; creditNoteNumber: string; amount: string; reason: string }[];
+}
+const METHODS = ["CASH", "UPI", "CARD", "BANK_TRANSFER", "OTHER"];
+type Tender = { method: string; amount: string; reference: string };
+
+function PayModal({ inv, onClose, onDone }: { inv: Invoice; onClose: () => void; onDone: () => void }) {
+  const { money } = useMe();
+  const [rows, setRows] = useState<Tender[]>([{ method: "CASH", amount: inv.balanceDue, reference: "" }]);
+  const [key] = useState(newKey);
+  const sum = rows.reduce((n, r) => n + Math.round(Number(r.amount || 0) * 100), 0);
+  const due = Math.round(Number(inv.balanceDue) * 100);
+  const pay = useMutation({
+    mutationFn: () => api.post(`/invoices/${inv.id}/payments`, { payments: rows.filter((r) => Number(r.amount) > 0).map((r) => ({ method: r.method, amount: r.amount, ...(r.reference ? { reference: r.reference } : {}) })) }, key),
+    onSuccess: onDone,
+  });
+  return (
+    <Modal title={`Take payment — due ${money(inv.balanceDue)}`} onClose={onClose}>
+      <div className="space-y-3">
+        {rows.map((r, i) => (
+          <div key={i} className="grid grid-cols-12 gap-2">
+            <Select aria-label="Mode" className="col-span-4" value={r.method} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, method: e.target.value } : x)))}>{METHODS.map((m) => <option key={m} value={m}>{m.replace("_", " ").toLowerCase()}</option>)}</Select>
+            <Input aria-label="Amount" className="col-span-3" inputMode="decimal" value={r.amount} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))} />
+            <Input aria-label="Reference" className="col-span-4" placeholder={r.method === "CASH" ? "—" : "Reference"} disabled={r.method === "CASH"} value={r.reference} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, reference: e.target.value } : x)))} />
+            {rows.length > 1 && <button className="col-span-1 text-slate-400 hover:text-red-700" aria-label="Remove" onClick={() => setRows(rows.filter((_, j) => j !== i))}>✕</button>}
+          </div>
+        ))}
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => setRows([...rows, { method: "UPI", amount: String(Math.max(0, due - sum) / 100), reference: "" }])}>+ Split payment</Button>
+          <span className={`text-sm ${sum === due ? "text-green-700" : "text-amber-700"}`}>Entered {money(sum / 100)}</span>
+        </div>
+        <ErrorNote error={pay.error} />
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button disabled={sum <= 0 || sum > due} loading={pay.isPending} onClick={() => pay.mutate()}>Receive payment</Button></div>
+      </div>
+    </Modal>
+  );
+}
+
+function Adjust({ inv, kind, onClose, onDone }: { inv: Invoice; kind: "refund" | "credit-notes"; onClose: () => void; onDone: () => void }) {
+  const { money } = useMe();
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState("CASH");
+  const [reason, setReason] = useState("");
+  const [key] = useState(newKey);
+  const m = useMutation({
+    mutationFn: () => api.post(`/invoices/${inv.id}/${kind === "refund" ? "refunds" : "credit-notes"}`, { amount, reason, ...(kind === "refund" ? { method } : {}) }, key),
+    onSuccess: onDone,
+  });
+  return (
+    <Modal title={kind === "refund" ? `Refund — up to ${money(inv.refundable)}` : "Credit note"} onClose={onClose}>
+      <div className="space-y-3">
+        <Field label="Amount"><Input autoFocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
+        {kind === "refund" && <Field label="Refund by"><Select value={method} onChange={(e) => setMethod(e.target.value)}>{METHODS.map((x) => <option key={x} value={x}>{x.replace("_", " ").toLowerCase()}</option>)}</Select></Field>}
+        <Field label="Reason" hint="At least 5 characters; recorded permanently."><Input value={reason} onChange={(e) => setReason(e.target.value)} /></Field>
+        <ErrorNote error={m.error} />
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="danger" disabled={!Number(amount) || reason.trim().length < 5} loading={m.isPending} onClick={() => m.mutate()}>{kind === "refund" ? "Issue refund" : "Issue credit note"}</Button></div>
+      </div>
+    </Modal>
+  );
+}
+
+interface EditLine { serviceId?: string | null; description: string; unitPrice: string; taxPercent: string; quantity: string }
+
+/** Draft bills can be changed freely; once issued they are locked (credit note, refund or cancel instead). */
+function EditDraft({ inv, onClose, onDone }: { inv: Invoice; onClose: () => void; onDone: () => void }) {
+  const { money } = useMe();
+  const [lines, setLines] = useState<EditLine[]>(inv.lines.map((l) => ({ serviceId: l.serviceId ?? null, description: l.description, unitPrice: l.unitPrice, taxPercent: l.taxPercent, quantity: l.quantity })));
+  const [notes, setNotes] = useState(inv.notes ?? "");
+  const [q, setQ] = useState("");
+  const services = useQuery({ queryKey: ["services"], queryFn: () => api.page<{ id: string; name: string; price: string; taxPercent: string }>("/services", { pageSize: 100 }) });
+  const matches = (services.data?.data ?? []).filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+  const save = useMutation({
+    mutationFn: () => api.put(`/invoices/${inv.id}`, {
+      version: inv.version, notes: notes.trim() === "" ? null : notes.trim(),
+      lines: lines.map((l) => (l.serviceId ? { serviceId: l.serviceId, quantity: l.quantity } : { description: l.description, unitPrice: l.unitPrice, taxPercent: l.taxPercent || "0", quantity: l.quantity })),
+    }),
+    onSuccess: onDone,
+  });
+  const patch = (i: number, p: Partial<EditLine>) => setLines(lines.map((x, j) => (j === i ? { ...x, ...p } : x)));
+  return (
+    <Modal title="Edit draft bill" onClose={onClose} wide>
+      <div className="space-y-3">
+        <Table head={["Item", "Qty", "Rate", "Tax %", ""]}>
+          {lines.map((l, i) => (
+            <tr key={i}>
+              <Td>{l.serviceId ? l.description : <Input aria-label="Description" value={l.description} onChange={(e) => patch(i, { description: e.target.value })} />}</Td>
+              <Td><Input aria-label="Quantity" className="w-20" inputMode="decimal" value={l.quantity} onChange={(e) => patch(i, { quantity: e.target.value })} /></Td>
+              <Td>{l.serviceId ? money(l.unitPrice) : <Input aria-label="Rate" className="w-24" inputMode="decimal" value={l.unitPrice} onChange={(e) => patch(i, { unitPrice: e.target.value })} />}</Td>
+              <Td>{l.serviceId ? l.taxPercent : <Input aria-label="Tax percent" className="w-16" inputMode="decimal" value={l.taxPercent} onChange={(e) => patch(i, { taxPercent: e.target.value })} />}</Td>
+              <Td><button aria-label="Remove line" className="text-slate-400 hover:text-red-700" onClick={() => setLines(lines.filter((_, j) => j !== i))}>✕</button></Td>
+            </tr>
+          ))}
+        </Table>
+        <Field label="Add a service"><Input placeholder="Search price list…" value={q} onChange={(e) => setQ(e.target.value)} /></Field>
+        <div className="flex flex-wrap gap-1.5">
+          {matches.map((s) => <button key={s.id} className="rounded border border-slate-300 px-2 py-1 text-sm hover:bg-brand-50" onClick={() => setLines([...lines, { serviceId: s.id, description: s.name, unitPrice: s.price, taxPercent: s.taxPercent, quantity: "1" }])}>{s.name} · {money(s.price)}</button>)}
+          <button className="rounded border border-dashed border-slate-300 px-2 py-1 text-sm text-slate-600 hover:bg-slate-50" onClick={() => setLines([...lines, { description: "", unitPrice: "", taxPercent: "0", quantity: "1" }])}>+ Other charge</button>
+        </div>
+        <Field label="Notes"><Input value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+        <ErrorNote error={save.error} />
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button disabled={lines.length === 0 || lines.some((l) => !l.description || !l.unitPrice)} loading={save.isPending} onClick={() => save.mutate()}>Save changes</Button></div>
+      </div>
+    </Modal>
+  );
+}
+export default function InvoicePage() {
+  const { id } = useParams<{ id: string }>();
+  const { can, money, dateTime } = useMe();
+  const qc = useQueryClient();
+  const [modal, setModal] = useState<"pay" | "refund" | "credit-notes" | "edit" | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const inv = useQuery({ queryKey: ["invoice", id], queryFn: () => api.get<Invoice>(`/invoices/${id}`) });
+  const refresh = async () => { setModal(null); await qc.invalidateQueries({ queryKey: ["invoice", id] }); await qc.invalidateQueries({ queryKey: ["invoices"] }); };
+  const issue = useMutation({ mutationFn: () => api.post(`/invoices/${id}/issue`), onSuccess: refresh });
+  const cancel = useMutation({ mutationFn: () => api.post(`/invoices/${id}/cancel`, { reason: cancelReason.trim() }), onSuccess: refresh });
+  if (inv.isLoading) return <Spinner />;
+  if (inv.error || !inv.data) return <ErrorNote error={inv.error ?? new Error("Bill not found")} />;
+  const i = inv.data;
+  const live = ["ISSUED", "PARTIALLY_PAID", "PAID"].includes(i.status);
+  return (
+    <Gate anyOf={["INVOICE_READ"]}>
+      <PageHeader
+        title={i.invoiceNumber ?? "Draft bill"} subtitle={`${i.patientName} · MRN ${i.mrn ?? "—"} · ${i.kind.toLowerCase()}${i.issuedAt ? ` · issued ${dateTime(i.issuedAt)}` : ""}`}
+        actions={<>
+          <StatusBadge value={i.status} />
+          {i.status === "DRAFT" && can("INVOICE_CREATE") && <Button variant="secondary" onClick={() => setModal("edit")}>Edit items</Button>}
+          {i.status === "DRAFT" && can("INVOICE_ISSUE") && <Button loading={issue.isPending} onClick={() => issue.mutate()}>Issue bill</Button>}
+          {["ISSUED", "PARTIALLY_PAID"].includes(i.status) && can("PAYMENT_CREATE") && <Button onClick={() => setModal("pay")}>Take payment</Button>}
+          {i.status !== "DRAFT" && <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50" href={printUrl(`invoices/${i.id}`)} target="_blank" rel="noreferrer">Print bill</a>}
+          {i.status !== "DRAFT" && <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50" href={`${printUrl(`invoices/${i.id}`)}?format=pdf&download=1`}>PDF</a>}
+        </>}
+      />
+      <ErrorNote error={issue.error ?? cancel.error} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card title="Items" className="lg:col-span-2">
+          <Table head={["#", "Item", "Qty", "Rate", "Tax", "Amount"]}>
+            {i.lines.map((l) => <tr key={l.lineNo}><Td>{l.lineNo}</Td><Td>{l.description}</Td><Td>{l.quantity}</Td><Td>{money(l.unitPrice)}</Td><Td>{l.taxPercent}%</Td><Td>{money(l.lineTotal)}</Td></tr>)}
+          </Table>
+          {i.notes && <p className="mt-2 text-sm text-slate-600">{i.notes}</p>}
+        </Card>
+        <Card title="Totals">
+          <dl className="grid grid-cols-2 gap-3">
+            <KV label="Subtotal">{money(i.subtotal)}</KV><KV label="Discount">{money(i.discountTotal)}</KV><KV label="Tax">{money(i.taxTotal)}</KV><KV label="Total"><b>{money(i.total)}</b></KV>
+            <KV label="Received">{money(i.netReceived)}</KV><KV label="Balance due"><b className={Number(i.balanceDue) > 0 ? "text-red-700" : "text-green-700"}>{money(i.balanceDue)}</b></KV>
+          </dl>
+          {live && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {Number(i.refundable) > 0 && can("PAYMENT_REFUND") && <Button variant="secondary" onClick={() => setModal("refund")}>Refund…</Button>}
+              {can("INVOICE_ADJUST") && Number(i.balanceDue) > 0 && <Button variant="secondary" onClick={() => setModal("credit-notes")}>Credit note…</Button>}
+            </div>
+          )}
+          {live && can("INVOICE_CANCEL") && (
+            <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+              <Input placeholder="Reason to cancel this bill (min 5 characters)" aria-label="Cancel reason" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} />
+              <ConfirmButton label="Cancel bill" confirmLabel="Yes, cancel this bill" loading={cancel.isPending} disabled={cancelReason.trim().length < 5} onConfirm={() => cancel.mutate()} />
+            </div>
+          )}
+        </Card>
+        <Card title="Receipts" className="lg:col-span-3">
+          {i.receipts.length === 0 && i.refunds.length === 0 ? <p className="text-sm text-slate-500">No payments yet.</p> : (
+            <Table head={["Receipt", "When", "Paid by", "Amount", ""]}>
+              {i.receipts.map((r) => (
+                <tr key={r.id}><Td>{r.receiptNumber}</Td><Td>{dateTime(r.receivedAt)}</Td><Td>{r.payments.map((p) => `${p.method.toLowerCase().replace("_", " ")} ${money(p.amount)}`).join(" + ")}</Td><Td>{money(r.total)}</Td>
+                  <Td><a className="text-brand-700 hover:underline" href={printUrl(`receipts/${r.id}`)} target="_blank" rel="noreferrer">Print</a> · <a className="text-brand-700 hover:underline" href={`${printUrl(`receipts/${r.id}`)}?format=pdf&download=1`}>PDF</a></Td></tr>
+              ))}
+              {i.refunds.map((r) => <tr key={r.id} className="bg-red-50"><Td>{r.refundNumber}</Td><Td>{dateTime(r.createdAt)}</Td><Td>Refund · {r.method.toLowerCase()} · {r.reason}</Td><Td>−{money(r.amount)}</Td><Td /></tr>)}
+              {i.creditNotes.map((c) => <tr key={c.id} className="bg-amber-50"><Td>{c.creditNoteNumber}</Td><Td /><Td>Credit note · {c.reason}</Td><Td>−{money(c.amount)}</Td><Td /></tr>)}
+            </Table>
+          )}
+        </Card>
+      </div>
+      {i.status === "DRAFT" && <div className="mt-3"><Notice>This bill is a draft. Issue it to take payment; an issued bill cannot be edited, only credited or cancelled.</Notice></div>}
+      {modal === "edit" && <EditDraft inv={i} onClose={() => setModal(null)} onDone={refresh} />}
+      {modal === "pay" && <PayModal inv={i} onClose={() => setModal(null)} onDone={refresh} />}
+      {(modal === "refund" || modal === "credit-notes") && <Adjust inv={i} kind={modal} onClose={() => setModal(null)} onDone={refresh} />}
+    </Gate>
+  );
+}

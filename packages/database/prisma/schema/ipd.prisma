@@ -110,6 +110,11 @@ model Admission {
   nursingTasks NursingTask[]
   administrations MedicationAdministration[]
   intakeOutputs IntakeOutput[]
+  clearances  DischargeClearance[]
+  dischargeType  DischargeType?
+  dischargeNote  String?
+  finalInvoiceId String? @db.Uuid
+  finalInvoice   Invoice? @relation("AdmissionFinalInvoice", fields: [finalInvoiceId], references: [id], onDelete: Restrict)
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, id])

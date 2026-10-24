@@ -1,4 +1,7 @@
 import "reflect-metadata";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
 import { SYSTEM_ROLES } from "@medos/shared";
@@ -42,6 +45,8 @@ export interface TestApp {
 
 export async function startApp(opts: { rateLimit?: boolean } = {}): Promise<TestApp> {
   process.env["RATE_LIMIT_ENABLED"] = opts.rateLimit ? "true" : "false";
+  // Uploaded test files go to a throwaway directory, never the project storage.
+  process.env["STORAGE_DIR"] ??= mkdtempSync(join(tmpdir(), "medos-test-files-"));
   const app = await createApp();
   await app.init();
   const prisma = app.get(PrismaService);

@@ -31,6 +31,7 @@ import { ShiftsService } from "./modules/billing/shifts.service";
 import { DispensingService } from "./modules/pharmacy/dispensing.service";
 import { InventoryService } from "./modules/pharmacy/inventory.service";
 import { MedicinesService } from "./modules/pharmacy/medicines.service";
+import { MedicineMasterController } from "./modules/pharmacy/medicine-master.controller";
 import { PharmacyController } from "./modules/pharmacy/pharmacy.controller";
 import { StockService } from "./modules/pharmacy/stock.service";
 import { AdmissionsService } from "./modules/ipd/admissions.service";
@@ -40,6 +41,19 @@ import { WardsService } from "./modules/ipd/wards.service";
 import { MarService } from "./modules/nursing/mar.service";
 import { NursingController } from "./modules/nursing/nursing.controller";
 import { NursingService } from "./modules/nursing/nursing.service";
+import { DischargeController } from "./modules/discharge/discharge.controller";
+import { DischargeService } from "./modules/discharge/discharge.service";
+import { SummaryService } from "./modules/discharge/summary.service";
+import { PrintController } from "./modules/print/print.controller";
+import { PrintService } from "./modules/print/print.service";
+import { ReportsController } from "./modules/reports/reports.controller";
+import { ReportsService } from "./modules/reports/reports.service";
+import { FilesController } from "./modules/documents/files.controller";
+import { FilesService } from "./modules/documents/files.service";
+import { StorageService } from "./modules/documents/storage.service";
+import { SettingsController } from "./modules/settings/settings.controller";
+import { SettingsService } from "./modules/settings/settings.service";
+import { FeatureGuard } from "./common/feature.guard";
 import { AuditController } from "./modules/audit/audit.controller";
 import { AuthController } from "./modules/auth/auth.controller";
 import { AuthService } from "./modules/auth/auth.service";
@@ -63,7 +77,7 @@ export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
   EncountersController, AppointmentsController, QueueController, VitalsController,
-  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController, NursingController,
+  AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController, NursingController, DischargeController, SettingsController, MedicineMasterController, PrintController, ReportsController, FilesController,
 ];
 
 @Module({
@@ -76,10 +90,11 @@ export const CONTROLLERS = [
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
     StockService, MedicinesService, InventoryService, DispensingService,
-    WardsService, AdmissionsService, ChargesService, NursingService, MarService,
+    WardsService, AdmissionsService, ChargesService, NursingService, MarService, SettingsService, DischargeService, SummaryService, PrintService, ReportsService, FilesService, StorageService,
     // Order matters: rate limit first (cheap), then authentication + authorization.
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: FeatureGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
   exports: [PrismaService, NumberingService, AuditService, PasswordService, TenantsService, IdempotencyService, EncountersService, AdmissionsService, ChargesService],

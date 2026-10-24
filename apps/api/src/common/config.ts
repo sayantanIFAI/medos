@@ -11,6 +11,7 @@ const schema = z.object({
   LOGIN_LOCK_SECONDS: z.coerce.number().int().positive().default(900),
   RATE_LIMIT_ENABLED: z.enum(["true", "false"]).default("true").transform((v) => v === "true"),
   CORS_ORIGINS: z.string().default("http://localhost:3000"),
+  STORAGE_DIR: z.string().default("./.local/storage"),
   SCRYPT_LOG_N: z.coerce.number().int().min(10).max(20).default(15),
 });
 
