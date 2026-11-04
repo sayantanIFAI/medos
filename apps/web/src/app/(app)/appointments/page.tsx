@@ -7,7 +7,7 @@ import { Button, Card, ErrorNote, Field, Input, Modal, PageHeader, Select, Spinn
 import { api, newKey } from "@/lib/api";
 import { useMe } from "@/lib/me";
 
-interface Appt { practitionerId: string; id: string; startAt: string; status: string; patientName: string; mrn: string | null; practitionerName: string; departmentName: string | null; type: string; patientId: string; version: number }
+interface Appt { practitionerId: string; id: string; startAt: string; status: string; patientName: string; mrn: string | null; practitionerName: string; departmentName: string | null; type: string; patientId: string; version: number; source?: string }
 interface Slot { startAt: string; endAt: string; available: boolean }
 interface Doc { id: string; displayName: string }
 
@@ -112,7 +112,8 @@ export default function AppointmentsPage() {
   const [moving, setMoving] = useState<Appt | null>(null);
   const [reason, setReason] = useState("");
   const docs = useQuery({ queryKey: ["practitioners"], queryFn: () => api.get<Doc[]>("/practitioners") });
-  const list = useQuery({ queryKey: ["appointments", date, doctor], queryFn: () => api.page<Appt>("/appointments", { date, ...(doctor ? { practitionerId: doctor } : {}), pageSize: 100 }) });
+  const list = useQuery({ queryKey: ["appointments", date, doctor], queryFn: () => api.page<Appt>("/appointments", { date, ...(doctor ? { practitionerId: doctor } : {}), pageSize: 100 }), refetchInterval: 10_000 });
+  const tomorrow = new Date(Date.parse(`${today}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
   const refresh = () => qc.invalidateQueries({ queryKey: ["appointments"] });
   const act = useMutation({ mutationFn: ({ id, action, body }: { id: string; action: string; body?: unknown }) => api.post(`/appointments/${id}/${action}`, body), onSuccess: async () => { await refresh(); await qc.invalidateQueries({ queryKey: ["queue"] }); } });
   return (
@@ -120,6 +121,8 @@ export default function AppointmentsPage() {
       <PageHeader
         title="Appointments"
         actions={<>
+          <Button variant={date === today ? "primary" : "ghost"} onClick={() => setDate(today)}>Today</Button>
+          <Button variant={date === tomorrow ? "primary" : "ghost"} onClick={() => setDate(tomorrow)}>Tomorrow</Button>
           <Input type="date" aria-label="Date" value={date} onChange={(e) => setDate(e.target.value)} className="w-40" />
           <Select aria-label="Doctor" value={doctor} onChange={(e) => setDoctor(e.target.value)} className="w-48"><option value="">All doctors</option>{docs.data?.map((d) => <option key={d.id} value={d.id}>{d.displayName}</option>)}</Select>
           {can("APPOINTMENT_CREATE") && <Button variant="secondary" onClick={() => setModal("walkin")}>Walk-in</Button>}
@@ -133,7 +136,7 @@ export default function AppointmentsPage() {
             {list.data?.data.map((a) => (
               <tr key={a.id}>
                 <Td>{dateTime(a.startAt).split(", ").pop()}</Td>
-                <Td><span className="font-medium">{a.patientName}</span> <span className="text-slate-500">· {a.mrn}</span></Td>
+                <Td><span className="font-medium">{a.patientName}</span> <span className="text-slate-500">· {a.mrn}</span>{a.source === "VOICE_BOT" && <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700" title="Booked by the voice bot">Voice bot</span>}</Td>
                 <Td>{a.practitionerName}<div className="text-xs text-slate-500">{a.departmentName}</div></Td>
                 <Td><StatusBadge value={a.status} /></Td>
                 <Td>

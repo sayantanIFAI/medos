@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Gate } from "@/components/gate";
+import { JourneyCard } from "@/components/journey";
 import { EditPatientModal, FilesCard, PatientPhoto, type EditablePatient } from "@/components/patient-extras";
 import { Button, Card, ErrorNote, Field, Input, KV, Modal, Notice, PageHeader, Select, Spinner, StatusBadge, Table, Td } from "@/components/ui";
 import { api, newKey, printUrl } from "@/lib/api";
@@ -102,6 +103,7 @@ export default function PatientPage() {
           </dl>
         </Card>
         <div className="space-y-4 lg:col-span-2">
+          {can("APPOINTMENT_READ") && can("LAB_READ") && <JourneyCard patientId={pt.id} />}
           <Allergies patientId={pt.id} />
           <FilesCard patientId={pt.id} />
           <Card title="Visits and admissions">

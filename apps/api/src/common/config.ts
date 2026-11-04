@@ -12,6 +12,17 @@ const schema = z.object({
   RATE_LIMIT_ENABLED: z.enum(["true", "false"]).default("true").transform((v) => v === "true"),
   CORS_ORIGINS: z.string().default("http://localhost:3000"),
   STORAGE_DIR: z.string().default("./.local/storage"),
+  /**
+   * The remote AI host (a free Kaggle GPU notebook, see apps/ai-host): prescription reading, speech recognition and the language model all
+   * run THERE, never on the machine that runs MedOS. One base URL and one token serve all three. Unset: those features say they are not connected.
+   */
+  AI_REMOTE_URL: z.string().url().optional(),
+  AI_REMOTE_TOKEN: z.string().min(16).optional(),
+  AI_REMOTE_TIMEOUT_MS: z.coerce.number().int().min(1000).max(180_000).default(60_000),
+  /** The language model's own address when it is not the remote AI host (an Ollama-compatible /api/chat). Usually unset. */
+  ASSISTANT_LLM_URL: z.string().url().optional(),
+  ASSISTANT_LLM_MODEL: z.string().default("qwen2.5:7b"),
+  ASSISTANT_LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120_000).default(45_000),
   SCRYPT_LOG_N: z.coerce.number().int().min(10).max(20).default(15),
 });
 

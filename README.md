@@ -14,6 +14,10 @@ Multi-tenant Hospital Management System for small and medium hospitals in India.
 - [`docs/deployment.md`](docs/deployment.md) — Docker, migrations, seed, backup/restore
 - [`docs/backlog.md`](docs/backlog.md) — deferred work
 - [`docs/dependencies/licenses.md`](docs/dependencies/licenses.md) — licensing policy and audit
+- [`docs/adr/011-separate-voicebot-and-ocr-apps.md`](docs/adr/011-separate-voicebot-and-ocr-apps.md) — the voicebot and OCR reader as two separate local apps, one patient journey in MedOS ([voicebot](apps/voicebot/README.md), [OCR](apps/ocr-app/README.md))
+- [`docs/adr/010-front-desk-assistant.md`](docs/adr/010-front-desk-assistant.md) — the Hindi/English assistant, lab booking and prescription OCR (Assistant menu)
+- [`docs/voice-bridge.md`](docs/voice-bridge.md) — phone voice bot to MedOS bookings
+- [`apps/ai-host/README.md`](apps/ai-host/README.md) — the AI host on a GPU pod (OCR, speech, language model); nothing AI runs on this computer
 
 ## Layout
 ```

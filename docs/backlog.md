@@ -65,3 +65,18 @@ Radiology/PACS/DICOM, pathology, blood bank, dialysis, IVF, dental charting, adv
 - Upgrade to NestJS 11 (clears the remaining `pnpm audit` advisory); consider Argon2id (ADR-009).
 - Point-in-time recovery, encrypted backups, scheduled restore drills.
 - Localisation catalogues (Bengali, Hindi); accessibility audit.
+
+## AI-enabled hospital journey (MLP-2 and later)
+Design: `product/medos-ai-enabled-journey.pdf` (source: `product/journey/`). Phase 0 (vitals station before the doctor's call, Doctor Assistant role with delegation) fits the current system.
+
+**Built so far (ADR-010, 2026-11-04):** the front-desk assistant (Hindi/English, lab rates, doctor and lab booking), lab test booking, free OCR of a prescription to book its tests and follow-up, and the phone voice-bot link (`voice-bridge.md`).
+
+Still needs a decision to leave MLP-1 scope: kiosk, MQTT boards and bands, voice-to-Rx, lab results and sample tracking, surgery and OT, RFID, SONGI, NABH checker, ABDM/FHIR, insurance helper.
+
+Follow-ups for the assistant itself (unscheduled):
+- Move the AI host (`apps/ai-host/server.py`) from the rented pod to a server the hospital controls, and try the voice bot's IndicConformer for speech and a commercially licensed Hindi voice, so audio and pictures never leave the building.
+- An evaluation set of real Hindi front-desk sentences and a measured accuracy before any pilot; try larger or Indic-tuned models.
+- Phone line for patients (a service identity instead of a signed-in staff user), reached through the voice bot.
+- Billing for lab bookings (invoice lines from a booking), lab results, and handwriting-capable OCR (a vision model) for handwritten prescriptions.
+- Package the voicebot and OCR apps as Windows services or an installer; a kiosk mode for the voicebot; let the OCR app pick the patient from a barcode or the hospital's token number instead of a name search.
+- Keep conversations in the database (or Redis) so they survive a restart and work across several API instances.

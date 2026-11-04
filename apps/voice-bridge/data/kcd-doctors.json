@@ -1,0 +1,1200 @@
+{
+ "note": "Demo snapshot of the Kolkata Care Diagnostics voice bot roster (fictional doctors). Source: the voicebot repo seed at commit c587a2e. Weekday 0 = Monday.",
+ "doctors": [
+  {
+   "ref": "1",
+   "name": "Dr. Sourav Mukherjee",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "2",
+   "name": "Dr. Arindam Sen",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 6,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "3",
+   "name": "Dr. Prabir Ghosh",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "4",
+   "name": "Dr. Rajib Chowdhury",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "5",
+   "name": "Dr. Kaushik Bhattacharya",
+   "department": "Cardiology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "6",
+   "name": "Dr. Nirmal Roy",
+   "department": "Cardiology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "7",
+   "name": "Dr. Subrata Banerjee",
+   "department": "Cardiology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 1,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 3,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 5,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 6,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "8",
+   "name": "Dr. Manas Dutta",
+   "department": "Cardiology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "9",
+   "name": "Dr. Sutapa Chatterjee",
+   "department": "Gynaecology & Obstetrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "10",
+   "name": "Dr. Aparna Basu",
+   "department": "Gynaecology & Obstetrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "11",
+   "name": "Dr. Rina Mitra",
+   "department": "Gynaecology & Obstetrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "12",
+   "name": "Dr. Paromita Sengupta",
+   "department": "Gynaecology & Obstetrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "13",
+   "name": "Dr. Debasish Das",
+   "department": "Orthopaedics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "14",
+   "name": "Dr. Tapan Bose",
+   "department": "Orthopaedics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "15",
+   "name": "Dr. Amit Kar",
+   "department": "Orthopaedics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "16",
+   "name": "Dr. Subhankar Nandi",
+   "department": "Orthopaedics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "17",
+   "name": "Dr. Ranjan Pal",
+   "department": "ENT",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "18",
+   "name": "Dr. Kalyan Halder",
+   "department": "ENT",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "19",
+   "name": "Dr. Sanjay Guha",
+   "department": "ENT",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "20",
+   "name": "Dr. Biswajit Chanda",
+   "department": "ENT",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "21",
+   "name": "Dr. Mitali Saha",
+   "department": "Dermatology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "22",
+   "name": "Dr. Ashok Dey",
+   "department": "Dermatology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "23",
+   "name": "Dr. Pritha Adhikari",
+   "department": "Dermatology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "24",
+   "name": "Dr. Samir Bagchi",
+   "department": "Dermatology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "25",
+   "name": "Dr. Nandini Biswas",
+   "department": "Paediatrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "26",
+   "name": "Dr. Rupa Majumder",
+   "department": "Paediatrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "27",
+   "name": "Dr. Anirban Mondal",
+   "department": "Paediatrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "28",
+   "name": "Dr. Shreya Ganguly",
+   "department": "Paediatrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "29",
+   "name": "Dr. Kunal Sinha",
+   "department": "Diabetology & Endocrinology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "30",
+   "name": "Dr. Partha Ray",
+   "department": "Diabetology & Endocrinology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "31",
+   "name": "Dr. Abhijit Sarkar",
+   "department": "Diabetology & Endocrinology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "32",
+   "name": "Dr. Snehasish Chakraborty",
+   "department": "Diabetology & Endocrinology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "33",
+   "name": "Dr. Sudip Kundu",
+   "department": "Dentistry",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "34",
+   "name": "Dr. Moumita Mallick",
+   "department": "Dentistry",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 5,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "35",
+   "name": "Dr. Rajesh Pramanik",
+   "department": "Dentistry",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 2,
+     "start": "18:00",
+     "end": "20:00"
+    },
+    {
+     "weekday": 4,
+     "start": "18:00",
+     "end": "20:00"
+    }
+   ]
+  },
+  {
+   "ref": "36",
+   "name": "Dr. Trisha Bhowmik",
+   "department": "Dentistry",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "37",
+   "name": "Dr. Biswajit Sen",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "12:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "12:00"
+    }
+   ]
+  },
+  {
+   "ref": "38",
+   "name": "Dr. Ashis Lahiri",
+   "department": "General Surgery",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 5,
+     "start": "11:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "39",
+   "name": "Dr. Sharmila Dasgupta",
+   "department": "General Surgery",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 2,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 4,
+     "start": "11:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "40",
+   "name": "Dr. Joydeep Sanyal",
+   "department": "Neurology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "17:00",
+     "end": "19:00"
+    },
+    {
+     "weekday": 2,
+     "start": "17:00",
+     "end": "19:00"
+    },
+    {
+     "weekday": 4,
+     "start": "17:00",
+     "end": "19:00"
+    }
+   ]
+  },
+  {
+   "ref": "41",
+   "name": "Dr. Arup Maitra",
+   "department": "Neurosurgery",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 3,
+     "start": "17:30",
+     "end": "19:30"
+    },
+    {
+     "weekday": 5,
+     "start": "17:30",
+     "end": "19:30"
+    }
+   ]
+  },
+  {
+   "ref": "42",
+   "name": "Dr. Tanmoy Ghoshal",
+   "department": "Urology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 5,
+     "start": "11:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "43",
+   "name": "Dr. Alok Pathak",
+   "department": "Gynaecology & Obstetrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 2,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 4,
+     "start": "11:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "44",
+   "name": "Dr. Sanjay Saha",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "13:00",
+     "end": "15:00"
+    },
+    {
+     "weekday": 2,
+     "start": "13:00",
+     "end": "15:00"
+    },
+    {
+     "weekday": 4,
+     "start": "13:00",
+     "end": "15:00"
+    }
+   ]
+  },
+  {
+   "ref": "45",
+   "name": "Dr. Arun Kumar Saha",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "22:00",
+     "end": "23:45"
+    },
+    {
+     "weekday": 2,
+     "start": "22:00",
+     "end": "23:45"
+    },
+    {
+     "weekday": 4,
+     "start": "22:00",
+     "end": "23:45"
+    }
+   ]
+  },
+  {
+   "ref": "46",
+   "name": "Dr. Ziaul Haq",
+   "department": "Paediatrics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "47",
+   "name": "Dr. Chandan Kumar",
+   "department": "Gastroenterology",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "48",
+   "name": "Dr. Subhadip Mondal",
+   "department": "Orthopaedics",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "12:00",
+     "end": "14:00"
+    },
+    {
+     "weekday": 3,
+     "start": "12:00",
+     "end": "14:00"
+    },
+    {
+     "weekday": 5,
+     "start": "12:00",
+     "end": "14:00"
+    }
+   ]
+  },
+  {
+   "ref": "49",
+   "name": "Dr. Rajarshi Dutta",
+   "department": "General Medicine",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 0,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 1,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 2,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "10:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 4,
+     "start": "10:00",
+     "end": "13:00"
+    }
+   ]
+  },
+  {
+   "ref": "50",
+   "name": "Dr. Amitava Bhadra",
+   "department": "Psychiatry",
+   "slotMinutes": 10,
+   "windows": [
+    {
+     "weekday": 1,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 3,
+     "start": "11:00",
+     "end": "13:00"
+    },
+    {
+     "weekday": 5,
+     "start": "11:00",
+     "end": "13:00"
+    }
+   ]
+  }
+ ]
+}

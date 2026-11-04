@@ -1,0 +1,24 @@
+{
+  "name": "@medos/frontdesk-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The front-desk brain shared by the voicebot app, the OCR app and MedOS: Hindi/English understanding, doctor and lab matching, the booking dialogue, prescription reading rules, and clients for the AI pod and for MedOS.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src --config ../../eslint.config.mjs",
+    "test": "tsc -p tsconfig.json && node --test --test-concurrency=1 \"dist-test/**/*.spec.js\""
+  },
+  "dependencies": {
+    "@medos/shared": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.14.0"
+  }
+}

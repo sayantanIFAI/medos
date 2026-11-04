@@ -59,6 +59,8 @@ model Facility {
   numberSequences NumberSequence[]
   numberConfigs   NumberSequenceConfig[]
   departments     Department[]
+  labTests        LabTest[]
+  labBookings     LabBooking[]
   practitioners   Practitioner[]
   patients        Patient[]
   encounters      Encounter[]

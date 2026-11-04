@@ -1,0 +1,85 @@
+// ───────────────────────── Lab test catalogue and bookings (booking only: no sample tracking or results yet) ─────────────────────────
+
+enum LabBookingStatus {
+  BOOKED
+  CANCELLED
+}
+
+enum LabBookingSource {
+  MANUAL
+  VOICE_ASSISTANT
+  PRESCRIPTION
+}
+
+model LabTest {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String       @db.Uuid
+  facilityId      String       @db.Uuid
+  code            String
+  name            String
+  /// The rate quoted to patients (all-in). Tax treatment needs a professional review before go-live, like every price here.
+  price           Decimal      @db.Decimal(12, 2)
+  sampleType      String       @default("Blood")
+  reportHours     Int          @default(24)
+  fastingRequired Boolean      @default(false)
+  prepEn          String?
+  prepHi          String?
+  /// Other names callers and prescriptions use (CBC, "blood count", Hindi names). Used only to find the test; never shown as fact.
+  aliases         String[]     @default([])
+  status          ActiveStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(3)
+
+  facility Facility         @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  items    LabBookingItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, facilityId, code])
+  @@index([tenantId, facilityId, status])
+}
+
+model LabBooking {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String           @db.Uuid
+  facilityId     String           @db.Uuid
+  patientId      String           @db.Uuid
+  status         LabBookingStatus @default(BOOKED)
+  source         LabBookingSource @default(MANUAL)
+  collectionAt   DateTime         @db.Timestamptz(3)
+  homeCollection Boolean          @default(false)
+  notes          String?
+  cancelReason   String?
+  /// Sum of the item prices at booking time, computed on the server.
+  totalAmount    Decimal          @db.Decimal(12, 2)
+  /// The scanned prescription this booking came from, when it did.
+  fileId         String?          @db.Uuid
+  createdById    String           @db.Uuid
+  version        Int              @default(1)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
+
+  facility Facility         @relation(fields: [tenantId, facilityId], references: [tenantId, id], onDelete: Restrict)
+  patient  Patient          @relation(fields: [tenantId, patientId], references: [tenantId, id], onDelete: Restrict)
+  items    LabBookingItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, facilityId, collectionAt])
+  @@index([tenantId, patientId, collectionAt])
+}
+
+model LabBookingItem {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @db.Uuid
+  labBookingId String   @db.Uuid
+  labTestId    String   @db.Uuid
+  /// Name and price are copied at booking time so a later price change never rewrites an old booking.
+  name         String
+  price        Decimal  @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  booking LabBooking @relation(fields: [labBookingId], references: [id], onDelete: Restrict)
+  test    LabTest    @relation(fields: [labTestId], references: [id], onDelete: Restrict)
+
+  @@unique([labBookingId, labTestId])
+  @@index([tenantId, labBookingId])
+}

@@ -244,6 +244,42 @@ export class AppointmentsService {
     }
   }
 
+  /**
+   * Records a booking that an outside system (the voice bot) has already confirmed to the patient. That system owns the
+   * slot rules, so the doctor's MedOS schedule is not re-checked here; the database still refuses an overlap with another
+   * booked appointment, and `externalRef` is unique per tenant so a replay can never book twice.
+   */
+  async createExternal(
+    ctx: RequestContext,
+    input: { patientId: string; practitionerId: string; startAt: Date; durationMinutes: number; externalRef?: string; notes?: string; fileId?: string; source?: "VOICE_BOT" | "VOICE_ASSISTANT" | "PRESCRIPTION" },
+  ) {
+    const source = input.source ?? "VOICE_BOT";
+    this.assertNotInPast(input.startAt);
+    const endAt = new Date(input.startAt.getTime() + input.durationMinutes * 60_000);
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        await this.lockBooking(tx, `practitioner:${input.practitionerId}`, `patient:${input.patientId}`);
+        const practitioner = await this.assertPractitioner(tx, ctx, input.practitionerId, true);
+        await this.assertPatient(tx, ctx, input.patientId);
+        const a = await tx.appointment.create({
+          data: {
+            tenantId: ctx.tenantId, facilityId: ctx.facilityId, patientId: input.patientId, practitionerId: input.practitionerId,
+            departmentId: practitioner.departmentId, startAt: input.startAt, endAt, source, externalRef: input.externalRef ?? null, fileId: input.fileId ?? null,
+            notes: input.notes ?? null, createdById: ctx.userId,
+          },
+          select: VIEW,
+        });
+        await this.audit.record(tx, actorOf(ctx), {
+          action: "APPOINTMENT_CREATED", entityType: "Appointment", entityId: a.id,
+          metadata: { source, externalRef: input.externalRef ?? null, practitionerId: input.practitionerId, startAt: input.startAt.toISOString() },
+        });
+        return toAppointmentView(a);
+      });
+    } catch (e) {
+      throw this.mapConflict(e);
+    }
+  }
+
   async reschedule(ctx: RequestContext, id: string, input: z.infer<typeof rescheduleSchema>) {
     this.assertOverbookAllowed(ctx, input.overbook);
     if (input.startAt) this.assertNotInPast(input.startAt);

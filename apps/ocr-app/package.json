@@ -1,0 +1,17 @@
+{
+  "name": "@medos/ocr-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The OCR app: a separate program on the front-desk laptop. It reads a prescription on the AI pod and books the tests and follow-up into MedOS through the front-desk API.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src --config ../../eslint.config.mjs",
+    "pretest": "tsc -p tsconfig.json",
+    "test": "node --test --test-concurrency=1 \"dist-test/**/*.spec.js\"",
+    "start": "node dist/main.js"
+  },
+  "dependencies": { "@medos/frontdesk-core": "workspace:*", "@medos/shared": "workspace:*", "zod": "^3.23.8" },
+  "devDependencies": { "@types/node": "^22.9.0", "eslint": "^9.14.0", "typescript": "^5.6.3", "typescript-eslint": "^8.14.0" }
+}

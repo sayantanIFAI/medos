@@ -27,6 +27,16 @@ All paths are under `/api/v1`. Every route either is public, accepts any signed-
 | GET | `/practitioners/:id/schedule` | APPOINTMENT_READ |  |
 | PUT | `/practitioners/:id/schedule` | ADMIN_MASTERS |  |
 
+## Assistant
+
+| Method | Path | Access | Module flag |
+|---|---|---|---|
+| GET | `/assistant/capabilities` | ASSISTANT_USE |  |
+| POST | `/assistant/prescription-scan` | ASSISTANT_USE + PATIENT_READ |  |
+| POST | `/assistant/speak` | ASSISTANT_USE |  |
+| POST | `/assistant/transcribe` | ASSISTANT_USE |  |
+| POST | `/assistant/turn` | ASSISTANT_USE |  |
+
 ## Audit
 
 | Method | Path | Access | Module flag |
@@ -121,6 +131,26 @@ All paths are under `/api/v1`. Every route either is public, accepts any signed-
 | GET | `/patients/:id/files` | PATIENT_READ |  |
 | POST | `/patients/:id/files` | PATIENT_UPDATE |  |
 
+## FrontDesk
+
+| Method | Path | Access | Module flag |
+|---|---|---|---|
+| GET | `/frontdesk/activity` | PATIENT_READ + APPOINTMENT_READ + LAB_READ |  |
+| POST | `/frontdesk/appointments` | ASSISTANT_USE + APPOINTMENT_CREATE |  |
+| GET | `/frontdesk/availability` | ASSISTANT_USE + APPOINTMENT_READ |  |
+| GET | `/frontdesk/context` | ASSISTANT_USE |  |
+| GET | `/frontdesk/departments` | ASSISTANT_USE + APPOINTMENT_READ |  |
+| GET | `/frontdesk/doctors` | ASSISTANT_USE + APPOINTMENT_READ |  |
+| GET | `/frontdesk/journey/:patientId` | PATIENT_READ + APPOINTMENT_READ + LAB_READ |  |
+| POST | `/frontdesk/lab-bookings` | ASSISTANT_USE + LAB_BOOK |  |
+| GET | `/frontdesk/patients/:id/exists` | ASSISTANT_USE + PATIENT_READ |  |
+| POST | `/frontdesk/patients/resolve` | ASSISTANT_USE + PATIENT_READ + PATIENT_CREATE |  |
+| GET | `/frontdesk/patients/search` | ASSISTANT_USE + PATIENT_READ |  |
+| POST | `/frontdesk/prescription-scans` | ASSISTANT_USE |  |
+| POST | `/frontdesk/prescriptions` | ASSISTANT_USE + PATIENT_UPDATE |  |
+| POST | `/frontdesk/tests/lookup` | ASSISTANT_USE + LAB_READ |  |
+| POST | `/frontdesk/tests/match` | ASSISTANT_USE + LAB_READ |  |
+
 ## Health
 
 | Method | Path | Access | Module flag |
@@ -152,6 +182,17 @@ All paths are under `/api/v1`. Every route either is public, accepts any signed-
 | GET | `/wards` | ADMISSION_READ | IPD_ENABLED |
 | POST | `/wards` | ADMIN_MASTERS | IPD_ENABLED |
 | PATCH | `/wards/:id` | ADMIN_MASTERS | IPD_ENABLED |
+
+## Lab
+
+| Method | Path | Access | Module flag |
+|---|---|---|---|
+| GET | `/lab/bookings` | LAB_READ |  |
+| POST | `/lab/bookings` | LAB_BOOK + PATIENT_READ |  |
+| GET | `/lab/bookings/:id` | LAB_READ |  |
+| POST | `/lab/bookings/:id/cancel` | LAB_BOOK |  |
+| GET | `/lab/tests` | LAB_READ |  |
+| PUT | `/lab/tests` | ADMIN_MASTERS |  |
 
 ## Masters
 
@@ -330,3 +371,11 @@ All paths are under `/api/v1`. Every route either is public, accepts any signed-
 | POST | `/encounters/:id/observations` | VITALS_CREATE |  |
 | POST | `/observations/:id/enter-in-error` | VITALS_CREATE |  |
 | GET | `/patients/:id/observations` | VITALS_READ |  |
+
+## VoiceBookings
+
+| Method | Path | Access | Module flag |
+|---|---|---|---|
+| PUT | `/integrations/voice/bookings/:ref` | VOICE_BOOKING_SYNC + APPOINTMENT_READ |  |
+| POST | `/integrations/voice/bookings/:ref/cancel` | VOICE_BOOKING_SYNC + APPOINTMENT_READ |  |
+| PUT | `/integrations/voice/doctors/:ref` | VOICE_BOOKING_SYNC |  |

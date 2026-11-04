@@ -1,0 +1,22 @@
+{
+  "name": "@medos/voice-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Records the bookings the voice bot (BAANI) has already confirmed into MedOS. Pull-based, idempotent, never in the booking path.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src --config ../../eslint.config.mjs",
+    "pretest": "tsc -p tsconfig.json",
+    "test": "node --test --test-concurrency=1 \"dist-test/**/*.spec.js\"",
+    "start": "node dist/main.js",
+    "once": "node dist/main.js once"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.14.0"
+  }
+}

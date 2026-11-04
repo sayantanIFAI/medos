@@ -1,6 +1,6 @@
 # MLP-1 — Epics and User Stories
 
-Status key: **Done** = implemented and covered by an executed automated test; **Done (UI untested)** = implemented, verified only manually or at API level; **Gap** = not confirmed built (see `docs/certification.md` §5); **Deferred** = consciously postponed (`REMINDER.md`).
+Status key: **Done** = implemented and covered by an executed automated test; **Done (UI untested)** = implemented, verified only manually or at API level; **Gap** = not confirmed built (see `docs/certification.md` §5); **Deferred** = consciously postponed (`REMINDER.md`). **Planned** = designed for MLP-2, not built; **Later** = planned for a later phase.
 Roles: REC reception, DOC doctor, NUR nurse, CSH cashier, PHM pharmacist, MGR manager, ADM administrator.
 
 ## E1 Platform, authentication and authorization
@@ -121,6 +121,58 @@ Roles: REC reception, DOC doctor, NUR nurse, CSH cashier, PHM pharmacist, MGR ma
 | 10.5 | CSH raises the final bill from pending charges | Charges marked billed | Done |
 | 10.6 | Discharge completes only when paid | Part payment still blocks | Done |
 | 10.7 | Completion releases the bed and closes the encounter | Bed goes to cleaning | Done |
+
+## IPD additions: surgery and OPD-to-IPD conversion (MLP-2, planned)
+
+These epics belong to the inpatient (IPD) area. They extend E8 (beds and admissions), E9 (nursing) and E10 (discharge). Roles used here: SUR surgeon, ANE anaesthetist, OTC OT coordinator, OTN OT nurse, DA Doctor Assistant. Surgery needs a new set of permissions (for example SURGERY_READ, SURGERY_CREATE, SURGERY_SIGN, OT_SCHEDULE, OT_CHECKLIST, ANAESTHESIA_RECORD) so that a signature stays with the right professional. Everything below is **Planned**; none of it is built.
+
+## E10A Surgery and OT (part of IPD)
+| ID | Story | Acceptance criteria | Status |
+|---|---|---|---|
+| 10A.1 | As SUR I create a surgical case linked to the patient's admission or OPD visit | Procedure, side (laterality), urgency (emergency, urgent, elective), expected stay and estimate; case number generated safely | Planned |
+| 10A.2 | As the system I move a case through explicit states | PROPOSED, WORK_UP, READY, SCHEDULED, IN_THEATRE, IN_RECOVERY, POST_OP, CLOSED; no skipping; postponement and cancellation need a reason; every change audited | Planned |
+| 10A.3 | As SUR I record surgical, anaesthesia and blood consent | Witness, language used, date and time; signed consent is immutable; a missing consent blocks scheduling | Planned |
+| 10A.4 | As ANE I complete the pre-anaesthetic check | History, airway, ASA grade, fasting plan, planned anaesthesia type; signed by the anaesthetist | Planned |
+| 10A.5 | As DA I order pre-operative tests and track medical fitness | Results linked to the case; missing or abnormal items flagged; physician fitness recorded | Planned |
+| 10A.6 | As billing I prepare the estimate and package for the case | Package or itemised estimate; shown to the family; insurance pre-authorisation status tracked | Planned |
+| 10A.7 | As the system I enforce a readiness gate before scheduling | Consent, PAC, fitness, estimate and bed must be complete; override needs a permission and reason and is audited | Planned |
+| 10A.8 | As ADM I maintain OT masters | Theatres, tables, session templates, instrument sets and implant catalogue | Planned |
+| 10A.9 | As OTC I book a theatre, date, time, team and bed | No double booking of a theatre, surgeon, anaesthetist or bed (enforced by the database) | Planned |
+| 10A.10 | As OTC I handle emergency cases | Reserved emergency capacity; an emergency can pre-empt an elective slot with the bumped case rebooked and the reason recorded | Planned |
+| 10A.11 | As OTN I confirm equipment, instrument sterility, implants and blood are ready | Checklist with sterile status and expiry; unready items shown as blockers | Planned |
+| 10A.12 | As ward nurse I complete the pre-operative nursing checklist | Identity band, fasting, site marking, allergies, jewellery and valuables, pre-medication, consent present | Planned |
+| 10A.13 | As the OT team we complete the WHO safety checklist | Sign In, Time Out, Sign Out with times and who confirmed; steps cannot be skipped; incision cannot be logged before Time Out | Planned |
+| 10A.14 | As ANE I keep the anaesthesia record | Drugs, doses, fluids, vitals at intervals, events, blood loss; corrections keep history; signed by the anaesthetist | Planned |
+| 10A.15 | As SUR I write the operation note | Procedure done, findings, implants, complications, plan; signed by the surgeon; later changes are amendments with reason | Planned |
+| 10A.16 | As OTN I record swab, instrument and needle counts and specimens | Counts reconciled before closure; a mismatch must be resolved or escalated; specimens labelled and handed over | Planned |
+| 10A.17 | As OTN I record implants and consumables used | Batch and serial numbers; posted as charges to the admission; implant details printable for the patient | Planned |
+| 10A.18 | As the recovery nurse I record PACU observations | Vitals, pain, nausea, consciousness; criteria to leave recovery; destination ward or ICU | Planned |
+| 10A.19 | As SUR I sign post-operative orders | Analgesia, fluids, antibiotics, diet, mobilisation, monitoring; flows into the nursing medication chart (E9) | Planned |
+| 10A.20 | As billing I generate the surgery bill from the package | Package, theatre charges, surgeon and anaesthetist fees, consumables and implants; items used but not billed are flagged | Planned |
+| 10A.21 | As the OT in-charge I keep the OT register | Auto-filled from cases, printable, cannot be edited after the day is closed | Planned |
+| 10A.22 | As the infection-control nurse I monitor surgical site infection | Post-op follow-up check list; infection recorded against the case | Planned |
+| 10A.23 | As MGR I see OT reports | Utilisation, first-case-on-time, turnover time, cancellations with reasons, by surgeon and theatre | Planned |
+| 10A.24 | As the same-day surgery team I run a day-care pathway | Admit, operate, recover and discharge on the same day with the same safety gates | Planned |
+| 10A.25 | As OTC I receive scheduling suggestions | Based on each surgeon's recorded durations, team and readiness; urgent cases always take priority over revenue; OTC approves | Later |
+| 10A.26 | As OTN I track equipment location and readiness | Tags or barcodes with last-seen location and sterile status | Later |
+| 10A.27 | As the OT team we use a timed theatre transcript draft | Audio only with consent and notice; draft only; surgeon and anaesthetist verify and sign; retention policy applied | Later |
+
+## E10B OPD-to-IPD conversion tracker
+| ID | Story | Acceptance criteria | Status |
+|---|---|---|---|
+| 10B.1 | As DOC I advise admission or surgery during an OPD consultation | Reason, urgency, expected stay, ward type and diagnosis recorded as an admission advice linked to the OPD visit | Planned |
+| 10B.2 | As the system I track each advice through explicit states | ADVISED, ACCEPTED, ADMITTED, DEFERRED, DECLINED, REFERRED_OUT, LOST; a reason is mandatory for DECLINED, REFERRED_OUT and LOST; every change audited | Planned |
+| 10B.3 | As REC I admit from an advice in one step | Patient, diagnosis, consultant and bed preference pre-filled; the admission is linked back to the advice; no automatic admission | Planned |
+| 10B.4 | As REC or MGR I see a conversion tracker board | List by status, age of the advice, doctor, department and urgency; filters; overdue advices highlighted | Planned |
+| 10B.5 | As DA I follow up patients who have not been admitted | Follow-up tasks with call outcomes and the next date; optional voice-bot reminders; the patient's choice is recorded | Planned |
+| 10B.6 | As billing I attach an estimate and insurance check to the advice | Cost estimate or package, eligibility and pre-authorisation status shown to the family before they decide | Planned |
+| 10B.7 | As the bed manager I run a waiting list when no bed is free | Ordered by clinical urgency, then time; bed becoming free offers the next patient; changes audited | Planned |
+| 10B.8 | As SUR I convert an advice of surgery into a surgical case | Creates the case in E10A with the OPD findings carried over; the tracker shows the case state | Planned |
+| 10B.9 | As the emergency doctor I use a fast path from OPD to admission | Marked urgent, skips the waiting list, notifies the ward and bed manager; reason recorded | Planned |
+| 10B.10 | As MGR I see conversion reports | Advised vs admitted rate, time from advice to admission, drop-off reasons, by doctor, department and diagnosis | Planned |
+| 10B.11 | As the patient or family I receive reminders and instructions about the advised admission | In the chosen language; what to bring, fasting, cost estimate; opt-out respected | Planned |
+| 10B.12 | As DOC I see rule-based suggestions that a patient may need admission | Transparent criteria set by the hospital for named conditions; the doctor must accept; nothing admits a patient automatically | Later |
+| 10B.13 | As the system I keep privacy and permission rules | Only staff with admission or follow-up permission see the tracker; patient details are limited to what the role needs | Planned |
 
 ## E11 Reports
 | ID | Story | Acceptance | Status |

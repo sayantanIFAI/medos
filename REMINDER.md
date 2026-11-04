@@ -33,3 +33,28 @@ Things we agreed to postpone. Nothing here blocks local development and testing.
 
 ## Product ideas parked in `docs/backlog.md`
 Advance payments/deposits, patient merge tool, bulk import, CSV import, MLP-2+ items.
+
+## Voice bot link (BAANI to MedOS): see docs/voice-bridge.md
+- Demo only, and **nothing on the pod was changed**: the bridge reads the pod's booking log and lookup endpoint over SSH. No push to the voicebot repo.
+- Availability is still the voice bot's: a slot booked at the MedOS desk is not seen by the voice bot. For one shared calendar MedOS must become the slot source (needs a pod-side change, to be decided with the voice bot's owner).
+- A rescheduled booking is cancelled in MedOS but its replacement is not copied (the log never lists the new number).
+- Lab-test bookings by voice are not carried over (no lab module).
+- The bridge runs only while its command runs on the laptop; there is no always-on service.
+- Pod matter for the voice bot's owner: `/workspace/.clinic_api_token` is mode 666 (world-readable).
+- The roster of doctors is a snapshot file (`apps/voice-bridge/data/kcd-doctors.json`); refresh it if the voice bot's doctors change.
+
+## Voicebot app and OCR app (ADR-011)
+- Two separate programs on the laptop (`apps/voicebot` :5101, `apps/ocr-app` :5102). Start everything with `scripts\apps-up.ps1` (database, SSH tunnel to the pod, API, web, both apps); stop with `scripts\apps-up.ps1 -Stop`. They call the pod for AI and MedOS's `/frontdesk/*` API for bookings, as their own narrow MedOS users (create them with `scripts/frontdesk-apps-provision.mjs`, which writes `.local/voicebot.env` and `.local/ocr-app.env`).
+- One patient journey in MedOS (patient page, plus the dashboard card "Voicebot and OCR activity"). The existing built-in Assistant screen still works and runs the same engine.
+- Needs: the pod host running (`scripts\ai-pod.ps1`), the tunnel window open, MedOS API running. Apps hold conversations in memory only.
+- Open: apps are not packaged as installers or Windows services (they are started by the script); the journey is derived from bookings, so a booking cancelled in MedOS shows its status rather than disappearing; no web production build was run for the new journey cards.
+
+## Front desk assistant (ADR-010): Hindi/English assistant, lab booking, prescription reading
+- **Nothing AI runs on the MedOS computer.** Prescription reading (OCR), speech to text, spoken replies and the language model run on a rented RunPod GPU pod (`apps/ai-host`, set-up in its README; a free Kaggle notebook is the fallback), reached through an SSH tunnel (`scripts/ai-tunnel.ps1`). MedOS calls it with `AI_REMOTE_URL` + `AI_REMOTE_TOKEN` (put in `.local/ai-remote.env`). Without them the Assistant still types and books from simple word rules, and says voice and reading are not connected.
+- **The pod is a shared, rented demo host.** It also holds another project under `/workspace`, which MedOS never touches (only `/workspace/medos-ai`). It costs money while running; if the pod restarts run `scripts/ai-pod.ps1`. Before real patients, run the same `server.py` on a server the hospital controls: only the URL changes.
+- **Patient data leaves the MedOS computer** (prescription pictures, voice clips) over the SSH tunnel to the pod. Made-up patients only until the DPDP / consent / processing-agreement review is done.
+- **The spoken voice (Meta MMS-TTS) is non-commercial (CC-BY-NC 4.0).** Replace it with a commercially licensed Hindi voice before MedOS is sold.
+- **Not measured:** Whisper's Hindi accuracy at a noisy front desk, EasyOCR on photographed prescriptions, and Qwen's reading of Hindi sentences. Handwriting reads badly; unclear readings are never booked. Tried live on 2026-11-04 with one synthetic Hindi sentence and two printed prescriptions only.
+- Conversations are in memory (30 minutes, per API instance); an API restart ends them.
+- Lab bookings are booking only: no billing, sample tracking or results. The lab catalogue and rates are demo data; set the real rates in Administration.
+- Needs clinical-safety, DPDP and security review like everything else before real patient data.

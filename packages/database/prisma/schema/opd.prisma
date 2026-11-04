@@ -60,6 +60,12 @@ enum AppointmentType {
 enum AppointmentSource {
   SCHEDULED
   WALK_IN
+  /// Booked by the voice bot (BAANI); the reference is the voice system's own confirmation number.
+  VOICE_BOT
+  /// Booked by the in-app Hindi/English assistant.
+  VOICE_ASSISTANT
+  /// Booked automatically from a scanned prescription.
+  PRESCRIPTION
 }
 
 enum AppointmentStatus {
@@ -109,6 +115,10 @@ model Appointment {
   /// True when an authorised user deliberately booked over another appointment (or for a walk-in).
   overbooked       Boolean           @default(false)
   overbookReason   String?
+  /// The booking number of an outside system (the voice bot's confirmation id). Unique per tenant so a replay never books twice.
+  externalRef      String?
+  /// The scanned prescription this appointment was booked from, when it was (the patient journey links them).
+  fileId           String?           @db.Uuid
   cancelReason     String?
   encounterId      String?           @unique @db.Uuid
   createdById      String            @db.Uuid
@@ -124,6 +134,7 @@ model Appointment {
   queueEntry   QueueEntry?
 
   @@unique([tenantId, id])
+  @@unique([tenantId, externalRef])
   @@index([tenantId, facilityId, startAt])
   @@index([tenantId, practitionerId, startAt])
   @@index([tenantId, patientId, startAt])

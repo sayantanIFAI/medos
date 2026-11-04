@@ -66,6 +66,7 @@ model Patient {
   diagnoses    Diagnosis[]
   documents    ClinicalDocument[]
   files        PatientFile[]
+  labBookings  LabBooking[]
   medicationOrders MedicationOrder[]
   invoices     Invoice[]
   dispenses    Dispense[]

@@ -7,6 +7,7 @@ export const NAV: NavItem[] = [
   { href: "/patients", label: "Patients", anyOf: ["PATIENT_READ"] },
   { href: "/appointments", label: "Appointments", anyOf: ["APPOINTMENT_READ"] },
   { href: "/queue", label: "OPD queue", anyOf: ["QUEUE_READ"] },
+  { href: "/assistant", label: "Assistant", anyOf: ["ASSISTANT_USE"] },
   { href: "/billing", label: "Billing", anyOf: ["INVOICE_READ"] },
   { href: "/pharmacy", label: "Pharmacy", anyOf: ["PHARMACY_READ"], feature: "PHARMACY_ENABLED" },
   { href: "/ipd", label: "Admissions", anyOf: ["ADMISSION_READ"], feature: "IPD_ENABLED" },
@@ -18,7 +19,7 @@ export const NAV: NavItem[] = [
 
 /** CLAUDE.md §24: what each role sees first. */
 const ROLE_ORDER: Record<string, string[]> = {
-  RECEPTIONIST: ["/dashboard", "/patients", "/appointments", "/queue", "/ipd", "/billing"],
+  RECEPTIONIST: ["/dashboard", "/patients", "/appointments", "/assistant", "/queue", "/ipd", "/billing"],
   DOCTOR: ["/queue", "/patients", "/appointments", "/ipd", "/dashboard"],
   NURSE: ["/nursing", "/ipd", "/patients", "/dashboard"],
   PHARMACIST: ["/pharmacy", "/billing", "/patients", "/dashboard"],

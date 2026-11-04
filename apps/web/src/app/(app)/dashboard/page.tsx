@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { AppsActivityCard } from "@/components/journey";
 import { Card, PageHeader, Spinner } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/me";
@@ -38,6 +39,7 @@ export default function Dashboard() {
         {can("ADMISSION_READ") && features.IPD_ENABLED && <Stat label="Admitted patients" value={adm.data?.meta.total} href="/ipd" />}
         {can("REPORT_READ") && features.PHARMACY_ENABLED && <Stat label="Low-stock medicines" value={low.data?.rows.length} href="/pharmacy" />}
       </div>
+      {can("PATIENT_READ") && can("APPOINTMENT_READ") && can("LAB_READ") && <AppsActivityCard />}
       <Card title="Go to" className="mt-4">
         {nav.length === 0 ? <Spinner /> : <div className="flex flex-wrap gap-2">{nav.map((n) => <Link key={n.href} href={n.href} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-brand-50">{n.label}</Link>)}</div>}
         <p className="mt-3 text-xs text-slate-500">Tip: press <kbd className="rounded border px-1">/</kbd> anywhere to search for a patient.</p>

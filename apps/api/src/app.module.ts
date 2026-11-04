@@ -9,6 +9,19 @@ import { PrismaService } from "./common/prisma.service";
 import { RateLimitGuard } from "./common/rate-limit.guard";
 import { AppointmentsController } from "./modules/appointments/appointments.controller";
 import { AppointmentsService } from "./modules/appointments/appointments.service";
+import { AssistantController } from "./modules/assistant/assistant.controller";
+import { AsrService } from "./modules/assistant/asr.service";
+import { TtsService } from "./modules/assistant/tts.service";
+import { AssistantService } from "./modules/assistant/assistant.service";
+import { OcrService } from "./modules/assistant/ocr.service";
+import { PrescriptionScanService } from "./modules/assistant/scan.service";
+import { LabController } from "./modules/lab/lab.controller";
+import { LabService } from "./modules/lab/lab.service";
+import { VoiceBookingsController } from "./modules/integrations/voice.controller";
+import { VoiceBookingsService } from "./modules/integrations/voice.service";
+import { FrontDeskController } from "./modules/frontdesk/frontdesk.controller";
+import { JourneyService } from "./modules/frontdesk/journey.service";
+import { FrontDeskPorts } from "./modules/frontdesk/prisma-port";
 import { EncountersController } from "./modules/encounters/encounters.controller";
 import { EncountersService } from "./modules/encounters/encounters.service";
 import { QueueController } from "./modules/queue/queue.controller";
@@ -76,7 +89,7 @@ import { UsersService } from "./modules/users/users.service";
 export const CONTROLLERS = [
   HealthController, AuthController, TenantsController, FacilitiesController,
   UsersController, NumberingController, AuditController, MastersController, PatientsController,
-  EncountersController, AppointmentsController, QueueController, VitalsController,
+  EncountersController, AppointmentsController, VoiceBookingsController, LabController, AssistantController, FrontDeskController, QueueController, VitalsController,
   AllergiesController, ConsultationsController, PrescriptionsController, BillingController, PharmacyController, IpdController, NursingController, DischargeController, SettingsController, MedicineMasterController, PrintController, ReportsController, FilesController,
 ];
 
@@ -86,7 +99,7 @@ export const CONTROLLERS = [
     { provide: CONFIG, useFactory: () => loadConfig() },
     PrismaService, AuditService, PasswordService,
     AuthService, TenantsService, FacilitiesService, UsersService, NumberingService, MastersService, PatientsService, IdempotencyService,
-    EncountersService, AppointmentsService, QueueService, VitalsService,
+    EncountersService, AppointmentsService, VoiceBookingsService, LabService, FrontDeskPorts, JourneyService, AssistantService, OcrService, AsrService, TtsService, PrescriptionScanService, QueueService, VitalsService,
     ClinicianService, AllergiesService, ConsultationsService, PrescriptionsService,
     CatalogService, InvoicesService, LedgerService, PaymentsService, ShiftsService,
     StockService, MedicinesService, InventoryService, DispensingService,

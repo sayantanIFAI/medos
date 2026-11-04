@@ -408,6 +408,8 @@ unless explicitly requested in a later milestone.
 
 Design the data model cleanly enough that AI can be added later.
 
+Exception, approved by the owner on 2026-11-04 (ADR-010): the front-desk assistant. It understands spoken or typed Hindi/English, quotes lab test rates, finds doctors' free times, books lab tests and appointments, and reads a prescription with free OCR to book the tests and follow-up it asks for. It is not clinical AI: it makes no clinical suggestion. The rule for it, and for any later AI feature, is that the model only decides what was asked; MedOS records decide what is true, and a person says yes before anything is booked.
+
 ## 11. Authorization
 
 Use permission-based RBAC.

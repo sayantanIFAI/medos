@@ -34,6 +34,8 @@ model Practitioner {
   displayName    String
   specialty      String?
   registrationNo String?
+  /// The doctor's id in an outside system (the voice bot's clinic data). Unique per tenant.
+  externalRef    String?
   status         ActiveStatus @default(ACTIVE)
   createdAt      DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime     @updatedAt @db.Timestamptz(3)
@@ -50,6 +52,7 @@ model Practitioner {
 
   @@unique([tenantId, id])
   @@unique([tenantId, facilityId, userId])
+  @@unique([tenantId, externalRef])
   @@index([tenantId, facilityId, status])
   @@index([departmentId])
 }

@@ -20,8 +20,9 @@ export async function createApp(): Promise<NestExpressApplication> {
   app.useBodyParser("json", { limit: "256kb" });
   // Raw file bodies (PNG/JPEG/PDF) are accepted only on the patient file upload route, only from callers that sent credentials
   // (so anonymous requests cannot make the server buffer large bodies), and only up to the size limit.
-  const rawFiles = raw({ type: ["image/png", "image/jpeg", "application/pdf"], limit: "6mb" });
-  const authedOnly: RequestHandler = (req, res, next) => (req.method === "POST" && req.headers.authorization && /^\/api\/v1\/patients\/[^/]+\/files\/?$/.test(req.path) ? rawFiles(req, res, next) : next());
+  // Short voice clips (audio/*) are accepted the same way, on the assistant's transcription route only.
+  const rawFiles = raw({ type: ["image/png", "image/jpeg", "application/pdf", "audio/webm", "audio/ogg", "audio/wav", "audio/x-wav", "audio/mp4", "audio/mpeg", "audio/aac"], limit: "6mb" });
+  const authedOnly: RequestHandler = (req, res, next) => (req.method === "POST" && req.headers.authorization && /^\/api\/v1\/(?:patients\/[^/]+\/files|assistant\/prescription-scan|assistant\/transcribe|frontdesk\/prescriptions)\/?$/.test(req.path) ? rawFiles(req, res, next) : next());
   app.use(authedOnly);
   app.use(helmet());
   const origins = config.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedOS Voicebot</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#1d4ed8; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b1220; --card:#111a2e; --ink:#e5e7eb; --muted:#94a3b8; --line:#243049; --brand:#60a5fa; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,"Segoe UI","Nirmala UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0; } .sub { color:var(--muted); font-size:13px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; } .chip { font-size:12px; padding:3px 10px; border-radius:99px; border:1px solid var(--line); }
+  .ok { color:var(--ok); border-color:var(--ok); } .off { color:var(--bad); border-color:var(--bad); }
+  main { max-width:1100px; margin:18px auto; padding:0 16px; display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+  @media (max-width:800px) { main { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card h2 { margin:0 0 8px; font-size:14px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  #log { height:420px; overflow:auto; display:flex; flex-direction:column; gap:8px; padding:6px; background:var(--bg); border-radius:8px; }
+  .msg { max-width:82%; padding:8px 12px; border-radius:12px; border:1px solid var(--line); white-space:pre-wrap; }
+  .you { align-self:flex-end; background:var(--brand); color:#fff; border-color:var(--brand); } .bot { align-self:flex-start; background:var(--card); }
+  .booked { border-color:var(--ok); } .booked small { display:block; color:var(--ok); margin-top:4px; }
+  .row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  input[type=text] { flex:1; min-width:160px; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+  button { padding:10px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; cursor:pointer; }
+  button.primary { background:var(--brand); color:#fff; border-color:var(--brand); } button:disabled { opacity:.5; cursor:default; }
+  button.rec { background:var(--bad); border-color:var(--bad); color:#fff; }
+  .seg button { border-radius:0; } .seg button:first-child { border-radius:8px 0 0 8px; } .seg button:last-child { border-radius:0 8px 8px 0; } .seg .on { background:var(--brand); color:#fff; border-color:var(--brand); }
+  .examples { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; } .examples button { font-size:13px; padding:5px 10px; border-radius:99px; }
+  .note { font-size:13px; color:var(--muted); margin-top:8px; } .err { color:var(--bad); font-size:14px; margin-top:8px; }
+  ul.u { margin:0; padding-left:18px; } a { color:var(--brand); }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>MedOS Voicebot</h1><div class="sub">Speak or type in Hindi or English. Rates, doctors and bookings go straight into MedOS.</div></div>
+  <div class="chips" id="chips" aria-live="polite"><span class="chip">checking…</span></div>
+</header>
+<main>
+  <section class="card">
+    <div class="row" style="margin-top:0;justify-content:space-between">
+      <div class="seg" role="group" aria-label="Language"><button id="lhi" class="on">हिन्दी</button><button id="len">English</button></div>
+      <div><label><input type="checkbox" id="speak" checked> Read replies aloud</label> &nbsp; <button id="new">New conversation</button></div>
+    </div>
+    <div id="log" role="log" aria-live="polite" style="margin-top:10px"></div>
+    <div id="err" class="err" role="alert"></div>
+    <div class="row">
+      <button id="mic" class="primary">🎤 Speak</button>
+      <input id="text" type="text" placeholder="या यहाँ लिखें… / or type here" autocomplete="off">
+      <button id="send">Send</button>
+    </div>
+    <div class="examples" id="examples"></div>
+    <p class="note">Your voice clip goes to the AI service to be turned into words, and replies are spoken by it. Neither is kept. Nothing is booked until you say yes to the read-back.</p>
+  </section>
+  <aside>
+    <section class="card"><h2>What I understood</h2><div id="heard" class="note">Nothing yet.</div></section>
+    <section class="card" style="margin-top:16px"><h2>In MedOS</h2><div id="links" class="note">Bookings appear on the MedOS dashboard and the patient's journey within seconds.</div></section>
+  </aside>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const log = $("log"), errBox = $("err");
+  let lang = "hi", sessionId = null, awaiting = null, busy = false, rec = null, status = null, player = null;
+  const EX = { hi: ["CBC जांच का रेट क्या है?", "कल सुबह बच्चों के डॉक्टर से अपॉइंटमेंट चाहिए", "शुगर और थायराइड टेस्ट बुक करना है"], en: ["What is the rate of a CBC test?", "I want a doctor appointment tomorrow morning", "Book a thyroid test for tomorrow"] };
+
+  async function api(path, opts = {}) {
+    const r = await fetch(path, { ...opts, headers: { "x-medos-app": "1", ...(opts.headers || {}) } });
+    const type = r.headers.get("content-type") || "";
+    if (type.startsWith("audio/")) return r.ok ? r.blob() : Promise.reject(new Error("The reply could not be spoken."));
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error?.message || ("HTTP " + r.status));
+    return j.data;
+  }
+  const add = (who, text, booked) => {
+    const d = document.createElement("div"); d.className = "msg " + (who === "you" ? "you" : "bot") + (booked ? " booked" : ""); d.textContent = text;
+    if (booked) { const s = document.createElement("small"); s.textContent = "✓ Saved in MedOS · reference " + booked.reference; d.appendChild(s); }
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+  };
+  const setErr = (m) => { errBox.textContent = m || ""; };
+
+  async function refreshStatus() {
+    try {
+      status = await api("/api/status");
+      const chip = (ok, label) => `<span class="chip ${ok ? "ok" : "off"}">${ok ? "●" : "○"} ${label}</span>`;
+      $("chips").innerHTML = chip(status.medos.connected, status.medos.connected ? "MedOS (" + (status.medos.user || "connected") + ")" : "MedOS not reachable") + chip(status.pod.reachable, status.pod.reachable ? "AI pod" : "AI pod not reachable") + chip(status.model, status.model ? "model " + status.modelName : "no model");
+      $("links").innerHTML = '<ul class="u"><li><a target="_blank" rel="noopener" href="' + status.medos.webUrl + '/dashboard">MedOS dashboard</a></li><li><a target="_blank" rel="noopener" href="' + status.medos.webUrl + '/appointments">Appointments</a></li><li><a target="_blank" rel="noopener" href="' + status.medos.webUrl + '/assistant">Lab bookings</a></li></ul>';
+      $("mic").disabled = !status.pod.reachable || !navigator.mediaDevices;
+    } catch (e) { $("chips").innerHTML = '<span class="chip off">app not reachable</span>'; }
+  }
+
+  async function send(text) {
+    text = (text || "").trim(); if (!text || busy) return;
+    busy = true; setErr(""); add("you", text); $("text").value = "";
+    try {
+      const r = await api("/api/turn", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, lang, ...(sessionId ? { sessionId } : {}) }) });
+      sessionId = r.sessionId; awaiting = r.awaiting;
+      add("bot", r.reply, r.booked);
+      const u = r.understood, chips = [...u.tests, u.doctor, u.department, u.date, u.time, u.patient].filter(Boolean);
+      $("heard").textContent = chips.length ? chips.join(" · ") : "Nothing yet.";
+      if ($("speak").checked) playReply(r.reply, r.lang);
+    } catch (e) { setErr(e.message); } finally { busy = false; }
+  }
+  async function playReply(text, l) {
+    try {
+      const blob = await api("/api/speak", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: text.slice(0, 500), lang: l }) });
+      if (player) player.pause(); const url = URL.createObjectURL(blob); player = new Audio(url); player.onended = () => URL.revokeObjectURL(url); await player.play();
+    } catch (e) { setErr("The reply is shown above but could not be spoken just now."); }
+  }
+
+  async function toggleMic() {
+    if (rec && rec.state === "recording") { rec.stop(); return; }
+    setErr(""); if (player) player.pause();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find((m) => MediaRecorder.isTypeSupported(m));
+      rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const parts = [];
+      rec.ondataavailable = (e) => { if (e.data.size) parts.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop()); $("mic").textContent = "🎤 Speak"; $("mic").classList.remove("rec");
+        const clip = new Blob(parts, { type: rec.mimeType || mime || "audio/webm" });
+        if (clip.size < 1500) { setErr("Nothing was heard. Press the microphone and try again."); return; }
+        $("mic").disabled = true; $("mic").textContent = "Listening…";
+        try {
+          const hint = ["name", "age", "mobile", "confirm"].includes(awaiting) ? awaiting : "open";
+          const out = await api("/api/transcribe?lang=" + lang + "&hint=" + hint, { method: "POST", headers: { "content-type": clip.type || "audio/webm" }, body: clip });
+          if (!out.text.trim()) setErr("Nothing was heard. Press the microphone and try again."); else await send(out.text);
+        } catch (e) { setErr(e.message + " You can type instead."); } finally { $("mic").disabled = false; $("mic").textContent = "🎤 Speak"; }
+      };
+      rec.start(); $("mic").textContent = "■ Stop"; $("mic").classList.add("rec");
+      setTimeout(() => { if (rec.state === "recording") rec.stop(); }, 20000);
+    } catch (e) { setErr("The microphone was blocked or is missing. Allow it in the browser, or type instead."); }
+  }
+
+  function setLang(l) { lang = l; $("lhi").classList.toggle("on", l === "hi"); $("len").classList.toggle("on", l === "en"); renderExamples(); }
+  function renderExamples() { $("examples").innerHTML = ""; EX[lang].forEach((t) => { const b = document.createElement("button"); b.textContent = t; b.onclick = () => send(t); $("examples").appendChild(b); }); }
+  $("lhi").onclick = () => setLang("hi"); $("len").onclick = () => setLang("en");
+  $("mic").onclick = toggleMic; $("send").onclick = () => send($("text").value);
+  $("text").addEventListener("keydown", (e) => { if (e.key === "Enter") send($("text").value); });
+  $("new").onclick = () => { sessionId = null; awaiting = null; log.innerHTML = ""; $("heard").textContent = "Nothing yet."; setErr(""); };
+  renderExamples(); refreshStatus(); setInterval(refreshStatus, 15000);
+})();
+</script>
+</body>
+</html>

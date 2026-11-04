@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedOS Prescription Reader</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#1d4ed8; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b1220; --card:#111a2e; --ink:#e5e7eb; --muted:#94a3b8; --line:#243049; --brand:#60a5fa; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,"Segoe UI","Nirmala UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0; } .sub { color:var(--muted); font-size:13px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; } .chip { font-size:12px; padding:3px 10px; border-radius:99px; border:1px solid var(--line); }
+  .ok { color:var(--ok); border-color:var(--ok); } .off { color:var(--bad); border-color:var(--bad); }
+  main { max-width:1100px; margin:18px auto; padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:800px) { main { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px; }
+  .card h2 { margin:0 0 8px; font-size:14px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .drop { border:2px dashed var(--line); border-radius:10px; padding:18px; text-align:center; color:var(--muted); cursor:pointer; }
+  .drop.over { border-color:var(--brand); } #preview { max-width:100%; max-height:300px; margin-top:10px; border-radius:8px; border:1px solid var(--line); }
+  .row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center; }
+  input[type=text] { flex:1; min-width:160px; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+  button { padding:10px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; cursor:pointer; }
+  button.primary { background:var(--brand); color:#fff; border-color:var(--brand); } button:disabled { opacity:.5; cursor:default; }
+  table { width:100%; border-collapse:collapse; font-size:14px; } td,th { text-align:left; padding:5px 6px; border-bottom:1px solid var(--line); }
+  .tag { font-size:12px; padding:1px 8px; border-radius:99px; border:1px solid var(--line); } .tag.high { color:var(--ok); border-color:var(--ok); } .tag.med { color:var(--warn); border-color:var(--warn); }
+  pre { white-space:pre-wrap; background:var(--bg); padding:8px; border-radius:8px; font-size:13px; max-height:180px; overflow:auto; }
+  .note { font-size:13px; color:var(--muted); } .err { color:var(--bad); font-size:14px; margin-top:8px; }
+  .good { border-color:var(--ok); } .patient { display:block; padding:6px 8px; border:1px solid var(--line); border-radius:8px; margin-top:6px; cursor:pointer; } .patient.sel { border-color:var(--brand); background:var(--bg); }
+  a { color:var(--brand); }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>MedOS Prescription Reader</h1><div class="sub">Photograph or upload a prescription. Tests and follow-up visits are booked into MedOS.</div></div>
+  <div class="chips" id="chips" aria-live="polite"><span class="chip">checking…</span></div>
+</header>
+<main>
+  <div>
+    <section class="card">
+      <h2>1 · The prescription</h2>
+      <label class="drop" id="drop">Click to choose a photo or PDF (PNG, JPEG or PDF, up to 5 MB), or drop it here<input id="file" type="file" accept="image/png,image/jpeg,application/pdf" hidden></label>
+      <img id="preview" alt="" hidden>
+      <div class="row"><button id="read" class="primary" disabled>Read prescription</button><span id="readNote" class="note"></span></div>
+      <div id="err1" class="err" role="alert"></div>
+    </section>
+    <section class="card" id="foundCard" hidden>
+      <h2>What it asks for</h2>
+      <div class="note" id="conf"></div>
+      <table id="tests"></table>
+      <div id="visits"></div>
+      <details style="margin-top:8px"><summary class="note">Text read from the paper</summary><pre id="text"></pre></details>
+    </section>
+  </div>
+  <div>
+    <section class="card" id="patientCard" hidden>
+      <h2>2 · Which patient?</h2>
+      <p class="note">The name is only a starting point. Choose the right person; nothing is booked for a guessed name.</p>
+      <div class="row" style="margin-top:0"><input id="q" type="text" placeholder="Search name, mobile or record number"><button id="find">Search</button></div>
+      <div id="people"></div>
+      <label class="note" style="display:block;margin-top:10px"><input type="checkbox" id="auto" checked> Book the certain tests and the follow-up visit now</label>
+      <div class="row"><button id="book" class="primary" disabled>Book for this patient</button></div>
+      <div id="err2" class="err" role="alert"></div>
+    </section>
+    <section class="card" id="resultCard" hidden>
+      <h2>3 · Result</h2>
+      <div id="result"></div>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let file = null, status = null, patientId = null, patientName = "";
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const money = (v) => "₹" + Number(v).toLocaleString("en-IN");
+
+  async function api(path, opts = {}) {
+    const r = await fetch(path, { ...opts, headers: { "x-medos-app": "1", ...(opts.headers || {}) } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error?.message || ("HTTP " + r.status));
+    return j.data;
+  }
+
+  async function refreshStatus() {
+    try {
+      status = await api("/api/status");
+      const chip = (ok, label) => `<span class="chip ${ok ? "ok" : "off"}">${ok ? "●" : "○"} ${label}</span>`;
+      $("chips").innerHTML = chip(status.medos.connected, status.medos.connected ? "MedOS (" + (status.medos.user || "connected") + ")" : "MedOS not reachable") + chip(status.pod.reachable, status.pod.reachable ? "AI pod" : "AI pod not reachable");
+    } catch (e) { $("chips").innerHTML = '<span class="chip off">app not reachable</span>'; }
+  }
+
+  function chooseFile(f) {
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { $("err1").textContent = "The file is larger than 5 MB."; return; }
+    file = f; $("err1").textContent = ""; $("read").disabled = false; $("readNote").textContent = f.name;
+    const img = $("preview"); if (f.type.startsWith("image/")) { img.src = URL.createObjectURL(f); img.hidden = false; } else img.hidden = true;
+    ["foundCard", "patientCard", "resultCard"].forEach((id) => { $(id).hidden = true; });
+  }
+  $("drop").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", (e) => chooseFile(e.target.files[0]));
+  $("drop").addEventListener("dragover", (e) => { e.preventDefault(); $("drop").classList.add("over"); });
+  $("drop").addEventListener("dragleave", () => $("drop").classList.remove("over"));
+  $("drop").addEventListener("drop", (e) => { e.preventDefault(); $("drop").classList.remove("over"); chooseFile(e.dataTransfer.files[0]); });
+
+  const tag = (c) => `<span class="tag ${c === "HIGH" ? "high" : "med"}">${c === "HIGH" ? "sure" : "check"}</span>`;
+  function showFound(r) {
+    $("foundCard").hidden = false;
+    $("conf").textContent = "Reading confidence " + r.reading.confidence + "%" + (r.reading.unclear ? " — too unclear to book from. Please retake the photo." : "");
+    $("tests").innerHTML = r.tests.length ? "<tr><th>Test</th><th>Rate</th><th></th></tr>" + r.tests.map((t) => `<tr><td>${esc(t.name)} <span class="note">(read as “${esc(t.matched)}”)</span></td><td>${money(t.price)}</td><td>${tag(t.confidence)}</td></tr>`).join("") : '<tr><td class="note">No lab tests found.</td></tr>';
+    $("visits").innerHTML = r.visits.length ? "<p><b>Visits</b></p>" + r.visits.map((v) => `<div>${tag(v.confidence)} ${esc(v.evidence)} <span class="note">${v.confidence === "HIGH" ? "" : "— " + esc(v.why)}</span></div>`).join("") : "";
+    $("text").textContent = r.reading.text;
+  }
+
+  $("read").onclick = async () => {
+    $("read").disabled = true; $("readNote").textContent = "Reading on the AI pod…"; $("err1").textContent = "";
+    try {
+      const r = await api("/api/read?filename=" + encodeURIComponent(file.name), { method: "POST", headers: { "content-type": file.type }, body: file });
+      showFound(r); $("patientCard").hidden = false; $("resultCard").hidden = true; $("readNote").textContent = file.name;
+      $("q").value = r.patientGuess || ""; if ($("q").value) search();
+    } catch (e) { $("err1").textContent = e.message; $("readNote").textContent = file.name; } finally { $("read").disabled = false; }
+  };
+
+  async function search() {
+    const q = $("q").value.trim(); patientId = null; $("book").disabled = true; $("err2").textContent = "";
+    if (q.length < 2) { $("people").innerHTML = ""; return; }
+    try {
+      const rows = await api("/api/patients?q=" + encodeURIComponent(q));
+      $("people").innerHTML = rows.length ? rows.map((p) => `<label class="patient"><input type="radio" name="p" value="${esc(p.id)}" data-name="${esc(p.name)}"> <b>${esc(p.name)}</b> <span class="note">${esc(p.mrn || "")} ${p.ageYears != null ? "· " + p.ageYears + " yrs" : ""} ${p.mobileLast4 ? "· mobile ••••" + esc(p.mobileLast4) : ""}</span></label>`).join("") : '<p class="note">No patient found. Register the patient in MedOS first, or search another way.</p>';
+      document.querySelectorAll('input[name="p"]').forEach((r) => r.addEventListener("change", () => { patientId = r.value; patientName = r.dataset.name; $("book").disabled = false; document.querySelectorAll(".patient").forEach((l) => l.classList.toggle("sel", l.contains(r) && r.checked)); }));
+    } catch (e) { $("err2").textContent = e.message; }
+  }
+  $("find").onclick = search; $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+
+  $("book").onclick = async () => {
+    $("book").disabled = true; $("err2").textContent = "";
+    try {
+      const r = await api(`/api/scan?patientId=${patientId}&autoBook=${$("auto").checked}&filename=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "content-type": file.type }, body: file });
+      showFound(r); $("resultCard").hidden = false;
+      const web = status?.medos?.webUrl || "";
+      let h = "";
+      if (r.booked.lab) h += `<div class="card good">🧪 Lab booking <b>${esc(r.booked.lab.reference)}</b> for ${esc(patientName)}: ${r.booked.lab.tests.map(esc).join(", ")} — ${money(r.booked.lab.total)}<br><span class="note">Collection ${new Date(r.booked.lab.collectionAt).toLocaleString()}</span></div>`;
+      for (const a of r.booked.appointments) h += `<div class="card good">🩺 Follow-up <b>${esc(a.reference)}</b> with ${esc(a.doctor)}<br><span class="note">${new Date(a.startAt).toLocaleString()}</span></div>`;
+      if (r.fileId) h += `<p class="note">📄 The prescription is stored with the patient in MedOS.</p>`;
+      if (!r.booked.lab && !r.booked.appointments.length) h += `<p>${$("auto").checked ? "Nothing could be booked automatically." : "Nothing was booked (you chose to only read it)."}</p>`;
+      if (r.needsReview.length) h += `<p><b>Needs a person:</b></p><ul>${r.needsReview.map((n) => `<li>${esc(n.what)} — <span class="note">${esc(n.reason)}</span></li>`).join("")}</ul>`;
+      h += `<p><a target="_blank" rel="noopener" href="${esc(web)}/patients/${esc(patientId)}">Open ${esc(patientName)}'s journey in MedOS →</a></p>`;
+      $("result").innerHTML = h;
+    } catch (e) { $("err2").textContent = e.message; } finally { $("book").disabled = false; }
+  };
+  refreshStatus(); setInterval(refreshStatus, 15000);
+})();
+</script>
+</body>
+</html>
