@@ -20,7 +20,7 @@ backup_db() {
 mine() { pgrep -f "$1" | grep -v "^$$\$" || true; }
 
 stop() {
-  for pat in "$SRC/apps/api/dist/main.js" "$SRC/apps/voicebot/dist/main.js" "$SRC/apps/ocr-app/dist/main.js" "next start -p 3000" "cloudflared tunnel --no-autoupdate --url http://127.0.0.1"; do
+  for pat in "node apps/api/dist/main.js" "node apps/voicebot/dist/main.js" "node apps/ocr-app/dist/main.js" "next start -p 3000" "cloudflared tunnel --no-autoupdate --url http://127.0.0.1"; do
     for p in $(mine "$pat"); do kill "$p" 2>/dev/null; done
   done
   sleep 1
@@ -72,7 +72,7 @@ start_apps() {
 }
 
 stop_apps() {
-  for pat in "$SRC/apps/voicebot/dist/main.js" "$SRC/apps/ocr-app/dist/main.js"; do for p in $(mine "$pat"); do kill "$p" 2>/dev/null; done; done
+  for pat in "node apps/voicebot/dist/main.js" "node apps/ocr-app/dist/main.js"; do for p in $(mine "$pat"); do kill "$p" 2>/dev/null; done; done
   sleep 1
 }
 
