@@ -71,6 +71,7 @@ export async function scanPrescription(port: FrontDeskPort, ocr: OcrEngine, data
     tests: plan.tests, visits: plan.visits.map((v) => ({ ...v, booked: false })), booked: { lab: null, appointments: [] }, needsReview: [], fileId: null, autoBook: q.autoBook,
   };
   if (unclear) result.needsReview.push({ what: "the whole prescription", reason: "The reading is not clear enough to book from. Please retake the photo, or book by hand." });
+  for (const item of plan.unmatched) result.needsReview.push({ what: `${item} (listed under investigations)`, reason: "No test in your lab catalogue matches this. Add it to the catalogue, or book it by hand." });
   for (const t of plan.tests.filter((x) => x.confidence === "MEDIUM")) result.needsReview.push({ what: `${t.name} (read as "${t.matched}")`, reason: t.reason === "ambiguous" ? "More than one test fits this word. Choose the right one." : "The spelling is not exact. Please check it against the paper." });
   for (const v of plan.visits.filter((x) => x.confidence === "MEDIUM")) result.needsReview.push({ what: v.evidence, reason: `Follow-up or referral found, but ${v.why}.` });
 

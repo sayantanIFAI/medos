@@ -1,6 +1,7 @@
 import { DomainError } from "@medos/shared";
 import * as fs from "node:fs";
 import * as http from "node:http";
+import { timingSafeEqual } from "node:crypto";
 import * as path from "node:path";
 
 /** Reads KEY=VALUE lines from a file into process.env (values already set in the environment win). A missing file is fine. */
@@ -30,6 +31,22 @@ export interface AppServerOptions {
   staticDir: string;
   maxBodyBytes?: number;
   log?: (message: string) => void;
+  /**
+   * Host names (suffixes such as ".trycloudflare.com") the app may also answer on, for a deployment behind a tunnel. Empty on a laptop.
+   * Anything else is refused, so another website cannot reach the app through DNS tricks.
+   */
+  allowedHostSuffixes?: string[];
+  /** "user:password". When set, every request (the page and the routes) must carry it as HTTP Basic credentials. Required whenever the app is reachable from outside this computer. */
+  basicAuth?: string;
+}
+
+/** The two halves of "user:password" compared without revealing how many characters matched. */
+function basicAuthOk(header: string | undefined, expected: string): boolean {
+  const m = /^Basic\s+(.+)$/i.exec(header ?? "");
+  if (!m) return false;
+  const given = Buffer.from(Buffer.from(m[1] as string, "base64").toString("utf8"));
+  const want = Buffer.from(expected);
+  return given.length === want.length && timingSafeEqual(given, want);
 }
 
 const TYPES: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml" };
@@ -46,7 +63,13 @@ export function createAppServer(opts: AppServerOptions): http.Server {
 
   return http.createServer((req, res) => {
     const host = (req.headers.host ?? "").replace(/:\d+$/, "");
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(host)) { send(res, 403, "text/plain", "This app only answers on this computer."); return; }
+    const suffixes = (opts.allowedHostSuffixes ?? []).filter(Boolean);
+    if (!["127.0.0.1", "localhost", "[::1]"].includes(host) && !suffixes.some((s) => host.endsWith(s))) { send(res, 403, "text/plain", "This app does not answer on this address."); return; }
+    if (opts.basicAuth && !basicAuthOk(req.headers.authorization, opts.basicAuth)) {
+      res.writeHead(401, { "content-type": "text/plain", "www-authenticate": 'Basic realm="MedOS front desk", charset="UTF-8"', "cache-control": "no-store" });
+      res.end("Sign in");
+      return;
+    }
     const url = new URL(req.url ?? "/", "http://localhost");
     const method = (req.method ?? "GET").toUpperCase();
     const handler = opts.routes[`${method} ${url.pathname}`];

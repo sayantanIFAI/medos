@@ -137,6 +137,38 @@ describe("lab tests and bookings", () => {
     assert.equal((await t.api("get", "/lab/tests", otherRec.token)).body.data.length, 0);
   });
 
+  it("a bundle (a fever profile) books exactly the tests it includes, at the sum of their current rates", async () => {
+    const made = await putTest(a.admin.token, { code: "FEVER", name: "Fever Profile", price: 1, aliases: ["fever profile", "blood for fever"], includes: ["CBC", "fbs"] });
+    assert.equal(made.status, 201, JSON.stringify(made.body));
+    assert.equal(made.body.data.price, "520.50", "the rate is the sum, whatever price was sent");
+    assert.deepEqual(made.body.data.includes, ["CBC", "FBS"]);
+    const bundle = made.body.data.id as string;
+
+    const listed = await t.api("get", "/lab/tests?q=blood%20for%20fever", rec.token);
+    assert.equal(listed.body.data[0].price, "520.50");
+
+    const p = await registerPatient(t, rec.token);
+    const r = await book(rec.token, { patientId: p.id, testIds: [bundle, cbc], collectionAt: inMinutes(600) });
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    assert.deepEqual(r.body.data.items.map((i: { name: string }) => i.name).sort(), ["Blood Sugar Fasting", "Complete Blood Count (CBC)"], "each included test once, the bundle itself is not an item");
+    assert.equal(r.body.data.totalAmount, "520.50");
+
+    // the rate follows the tests it bundles
+    await putTest(a.admin.token, { code: "CBC", name: "Complete Blood Count (CBC)", price: 500, aliases: ["Blood Count", "खून की जांच"] });
+    assert.equal((await t.api("get", "/lab/tests?q=fever%20profile", rec.token)).body.data[0].price, "620.50");
+    await putTest(a.admin.token, { code: "CBC", name: "Complete Blood Count (CBC)", price: 400, aliases: ["Blood Count", "खून की जांच"] });
+  });
+
+  it("refuses a bundle that includes an unknown test, itself, another bundle, or another hospital's test", async () => {
+    const bad = (includes: string[]) => putTest(a.admin.token, { code: "BAD", name: "Bad Bundle", price: 1, includes });
+    assert.equal((await bad(["NOPE"])).status, 400);
+    assert.equal((await bad(["BAD"])).status, 400);
+    assert.equal((await bad(["FEVER"])).status, 400, "a bundle cannot include a bundle");
+    const other = await putTest(b.admin.token, { code: "OWN", name: "Other Hospital Test", price: 100 });
+    assert.equal(other.status, 201);
+    assert.equal((await putTest(a.admin.token, { code: "BAD", name: "Bad Bundle", price: 1, includes: ["OWN"] })).status, 400, "tests of another hospital do not exist here");
+  });
+
   it("enforces permissions: reading needs LAB_READ, booking needs LAB_BOOK", async () => {
     const p = await registerPatient(t, rec.token);
     assert.equal((await t.api("get", "/lab/tests", cashier.token)).status, 403);

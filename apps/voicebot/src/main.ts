@@ -43,6 +43,8 @@ async function podReachable(): Promise<boolean> {
 
 const server = createAppServer({
   staticDir: path.resolve(__dirname, "..", "public"),
+  allowedHostSuffixes: (process.env["APP_ALLOWED_HOSTS"] ?? "").split(",").map((s) => s.trim()),
+  ...(process.env["APP_BASIC_AUTH"] ? { basicAuth: process.env["APP_BASIC_AUTH"] } : {}),
   log: (m) => console.error(`[voicebot] ${m}`),
   routes: buildRoutes({
     engine, pod, medos,
@@ -53,4 +55,4 @@ const server = createAppServer({
     },
   }),
 });
-server.listen(port, "127.0.0.1", () => console.log(`Voicebot app: http://localhost:${port}  (AI pod: ${aiUrl ?? "not set"}, MedOS: ${medosCfg.baseUrl})`));
+server.listen(port, process.env["APP_BIND"] ?? "127.0.0.1", () => console.log(`Voicebot app: http://localhost:${port}  (AI pod: ${aiUrl ?? "not set"}, MedOS: ${medosCfg.baseUrl})`));

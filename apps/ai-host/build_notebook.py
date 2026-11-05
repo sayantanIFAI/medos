@@ -8,6 +8,7 @@ from pathlib import Path
 here = Path(__file__).parent
 server = (here / "server.py").read_text(encoding="utf-8")
 speech_prep = (here / "speech_prep.py").read_text(encoding="utf-8")
+vlm_read = (here / "vlm_read.py").read_text(encoding="utf-8")
 
 
 def md(text: str) -> dict:

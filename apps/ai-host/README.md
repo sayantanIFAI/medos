@@ -6,7 +6,7 @@ Where it runs today: a **RunPod GPU pod** (RTX PRO 4500, 32 GB), reached through
 
 | MedOS asks | Host does | Model |
 |---|---|---|
-| `POST /ocr` (picture or PDF) | reads Hindi + English text, line by line | EasyOCR (Apache-2.0); PDFs with text use their text |
+| `POST /ocr` (picture or PDF) | reads the paper, handwriting included; a reading it cannot make out scores low so MedOS asks for a better photo instead of booking | `qwen2.5vl:7b` vision model (Apache-2.0) first, EasyOCR (Apache-2.0) as the fallback; PDFs with text use their text |
 | `POST /asr` (short voice clip) | speech to text, Hindi or English | faster-whisper `large-v3` (MIT) |
 | `POST /tts` (reply text) | speaks it, WAV | Meta MMS-TTS Hindi/English (**CC-BY-NC 4.0, non-commercial**) |
 | `POST /api/chat` | Ollama pass-through: turns words into a structured request | `qwen2.5:14b` (Apache-2.0) |
@@ -55,6 +55,7 @@ ssh -p <port> -i <key> root@<pod> "cd /workspace/medos-ai && ./start.sh"
 
 - `server.py` is the host (FastAPI). It keeps nothing: audio and pictures live in memory or a temp file for the length of one request.
 - `pod/setup.sh`, `pod/start.sh` install and start it on the pod.
+- `vlm_read.py` holds the prompt and clean-up for the vision-model reading (repeated lines dropped, confidence worked out from how much was unreadable). Tests: `python -m unittest apps/ai-host/test_vlm_read.py`. Set `OCR_ENGINE=easyocr` to switch the vision model off.
 - `speech_prep.py` rewrites a reply before it is spoken, because the voices only know their own script: numbers become words (phone numbers digit by digit), "Dr." becomes "डॉक्टर", and English names (doctors, departments) are written in Devanagari by the local model once and remembered in `translit-cache.json`. The text MedOS shows is untouched. Tests: `python -m unittest apps/ai-host/test_speech_prep.py`.
 - `build_notebook.py` and `medos_ai_kaggle.ipynb` run the same host on a free Kaggle GPU with a Cloudflare tunnel instead (needs a phone-verified Kaggle account, GPU T4 x2, Internet On; the notebook prints `AI_REMOTE_URL` and `AI_REMOTE_TOKEN` each start; sessions end after about 12 hours). Edit `server.py`, never the notebook.
 - MedOS's side is tested against a stand-in that answers in the host's format (`apps/api/src/modules/assistant/remote.spec.ts`).

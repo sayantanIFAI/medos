@@ -33,6 +33,7 @@ if ! pgrep -f "$OLLAMA_DIST/bin/ollama serve" >/dev/null; then
   sleep 6
 fi
 OLLAMA_HOST=127.0.0.1:11435 "$OLLAMA_DIST/bin/ollama" pull "$MODEL"
+OLLAMA_HOST=127.0.0.1:11435 "$OLLAMA_DIST/bin/ollama" pull "${MEDOS_VLM_MODEL:-qwen2.5vl:7b}"   # reads prescriptions, handwriting included
 
 echo "== download speech, reading and voice models (cached under $BASE/hf)"
 export HF_HOME=$BASE/hf EASYOCR_MODULE_PATH=$BASE/hf/easyocr

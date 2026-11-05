@@ -27,6 +27,8 @@ from fastapi import Body, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.concurrency import run_in_threadpool
 
 from speech_prep import SpeechPrep
+from vlm_read import PROMPT as VLM_PROMPT
+from vlm_read import clean_reading
 
 TOKEN = os.environ.get("MEDOS_AI_TOKEN", "")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -122,20 +124,47 @@ def _group_lines(results: list[Any]) -> tuple[str, float]:
     return text, confidence
 
 
+def _prepare(image: Any) -> Any:
+    from PIL import ImageOps  # noqa: PLC0415
+
+    # a phone photo carries its rotation in metadata: without this a sideways paper is read as noise
+    return ImageOps.exif_transpose(image).convert("RGB")
+
+
 def _ocr_image(image: Any) -> tuple[str, float]:
     import numpy as np  # noqa: PLC0415
 
-    image = image.convert("RGB")
+    image = _prepare(image)
     image.thumbnail((3000, 3000))
     with _locks["ocr"]:
         return _group_lines(_state["ocr"].readtext(np.array(image), detail=1, paragraph=False))
 
 
+OCR_ENGINE = os.environ.get("OCR_ENGINE", "vlm")  # vlm: a vision model reads the paper (handwriting too); easyocr: the plain text finder
+VLM_MODEL = os.environ.get("MEDOS_VLM_MODEL", "qwen2.5vl:7b")
+
+
+def _vlm_page(image: Any) -> str:
+    import base64  # noqa: PLC0415
+
+    image = _prepare(image)
+    image.thumbnail((2000, 2000))
+    buf = io.BytesIO()
+    image.save(buf, "JPEG", quality=90)
+    body = {
+        "model": VLM_MODEL, "stream": False, "keep_alive": "24h",
+        "options": {"temperature": 0, "num_predict": 1400, "num_ctx": 8192, "repeat_penalty": 1.1},
+        "messages": [{"role": "user", "content": VLM_PROMPT, "images": [base64.b64encode(buf.getvalue()).decode()]}],
+    }
+    with httpx.Client(timeout=170) as c:
+        r = c.post(f"{OLLAMA_URL}/api/chat", json=body)
+        r.raise_for_status()
+    return str(r.json()["message"]["content"])
+
+
 def _read(data: bytes, content_type: str) -> dict[str, Any]:
     from PIL import Image  # noqa: PLC0415
 
-    if _state["ocr"] is None:
-        raise HTTPException(503, "reader not loaded")
     if content_type == "application/pdf":
         from pypdf import PdfReader  # noqa: PLC0415
 
@@ -145,14 +174,29 @@ def _read(data: bytes, content_type: str) -> dict[str, Any]:
         import pypdfium2 as pdfium  # noqa: PLC0415 - draws pages without any system package
 
         doc = pdfium.PdfDocument(data)
-        parts, confs = [], []
-        for index in range(min(len(doc), 3)):
-            t, c = _ocr_image(doc[index].render(scale=200 / 72).to_pil())
-            parts.append(t)
-            confs.append(c)
-        return {"text": "\n".join(parts), "confidence": round(sum(confs) / max(len(confs), 1)), "engine": "easyocr"}
-    text, confidence = _ocr_image(Image.open(io.BytesIO(data)))
-    return {"text": text, "confidence": round(confidence), "engine": "easyocr"}
+        images = [doc[index].render(scale=200 / 72).to_pil() for index in range(min(len(doc), 3))]
+    else:
+        images = [Image.open(io.BytesIO(data))]
+
+    vlm: Optional[tuple[str, int]] = None
+    if OCR_ENGINE == "vlm":
+        try:
+            vlm = clean_reading("\n".join(_vlm_page(im) for im in images))
+            if vlm[1] >= 55 or _state["ocr"] is None:
+                return {"text": vlm[0], "confidence": vlm[1], "engine": "qwen2.5-vl"}
+        except Exception as e:  # the vision model is down or timed out: fall back to the plain text finder
+            _state["errors"]["vlm"] = f"{type(e).__name__}: {e}"[:200]
+    if _state["ocr"] is None:
+        raise HTTPException(503, "reader not loaded")
+    parts, confs = [], []
+    for im in images:
+        t, c = _ocr_image(im)
+        parts.append(t)
+        confs.append(c)
+    easy = (round(sum(confs) / max(len(confs), 1)), "\n".join(parts))
+    if vlm and vlm[1] >= easy[0]:  # the vision model read it badly too, but better
+        return {"text": vlm[0], "confidence": vlm[1], "engine": "qwen2.5-vl"}
+    return {"text": easy[1], "confidence": easy[0], "engine": "easyocr"}
 
 
 @app.post("/ocr", dependencies=[Depends(require_token)])

@@ -14,7 +14,7 @@ mkdir -p "$BASE/logs"
 if [ ! -s "$BASE/token" ]; then head -c 24 /dev/urandom | base64 | tr -d '/+=\n' > "$BASE/token"; chmod 600 "$BASE/token"; fi
 
 if ! pgrep -f "$OLLAMA_DIST/bin/ollama serve" >/dev/null; then
-  OLLAMA_HOST=127.0.0.1:11435 OLLAMA_MODELS=$BASE/ollama-models OLLAMA_KEEP_ALIVE=24h \
+  OLLAMA_HOST=127.0.0.1:11435 OLLAMA_MODELS=$BASE/ollama-models OLLAMA_KEEP_ALIVE=24h OLLAMA_CONTEXT_LENGTH=8192 OLLAMA_MAX_LOADED_MODELS=3 \
     nohup "$OLLAMA_DIST/bin/ollama" serve >>"$BASE/logs/ollama.log" 2>&1 &
   sleep 5
 fi

@@ -23,11 +23,14 @@ const { tests } = JSON.parse(readFileSync(join(here, "data", "kcd-lab-tests.json
 const login = await call("POST", "/auth/login", null, { tenantCode: TENANT, identifier: ADMIN, password: PW });
 const token = login.tokens.accessToken;
 let created = 0, updated = 0;
+// a bundle ("includes": test names) books exactly those tests; bundles come after the tests they include in the data file
+const codeOf = new Map(tests.map((t, i) => [t.name, `LAB-${String(i + 1).padStart(3, "0")}`]));
 for (const [i, t] of tests.entries()) {
   const r = await call("PUT", "/lab/tests", token, {
     code: `LAB-${String(i + 1).padStart(3, "0")}`, name: t.name, price: t.rateInr, sampleType: t.sample || "Blood", reportHours: Math.max(1, t.reportHours || 24),
     fastingRequired: !!t.fasting, ...(t.prepEn ? { prepEn: t.prepEn.slice(0, 400) } : {}), ...(t.prepHi ? { prepHi: t.prepHi.slice(0, 400) } : {}),
     aliases: t.aliases.filter((a) => a.length <= 60).slice(0, 60),
+    ...(t.includes?.length ? { includes: t.includes.map((n) => { const c = codeOf.get(n); if (!c) throw new Error(`Bundle "${t.name}" includes "${n}", which is not in the catalogue`); return c; }) } : {}),
   });
   r.created ? created++ : updated++;
 }

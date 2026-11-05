@@ -18,10 +18,47 @@ export interface PlannedVisit {
   evidence: string;
   why: string;
 }
-export interface PrescriptionPlan { tests: PlannedTest[]; visits: PlannedVisit[] }
+export interface PrescriptionPlan {
+  tests: PlannedTest[]; visits: PlannedVisit[];
+  /** Things listed under investigations that matched no test in the hospital's catalogue (for example a "fever profile" bundle it does not have), so a person sees them instead of nothing. */
+  unmatched: string[];
+}
 
-const CLUE = /(?:follow[\s-]?up|review|re-?visit|come\s+(?:back|again)|show\s+again|next\s+visit|refer(?:red)?\s+to|referral|consult|फॉलो\s?अप|फिर\s+दिखा|दोबारा|दुबारा|वापस\s+आ|रेफर|परामर्श|दिखाएँ|दिखाएं)/iu;
-const REFER = /(?:refer(?:red)?\s+to|referral|consult|रेफर|परामर्श)/iu;
+// "consult" must not match "Consultant" (a signature line on many forms)
+const CLUE = /(?:follow[\s-]?up|review|re-?visit|come\s+(?:back|again)|show\s+again|next\s+visit|refer(?:red)?\s+to|referral|consult(?!ant)|फॉलो\s?अप|फिर\s+दिखा|दोबारा|दुबारा|वापस\s+आ|रेफर|परामर्श|दिखाएँ|दिखाएं)/iu;
+const REFER = /(?:refer(?:red)?\s+to|referral|consult(?!ant)|रेफर|परामर्श)/iu;
+
+/** A form label with nothing filled in ("Next Follow Up: —", "Consultant Signature: [?]"), or a signature or stamp line: not a request for anything. */
+function isEmptyOrSignature(line: string): boolean {
+  if (/signature|signed|stamp|reg(?:istration)?\.?\s*no|हस्ताक्षर/iu.test(line)) return true;
+  const colon = line.indexOf(":");
+  if (colon < 0) return false;
+  return line.slice(colon + 1).replace(/\[\?\]|[\s\-–—_.?*|]/gu, "") === "";
+}
+
+const INVESTIGATION_LABEL = /^\s*(?:investigations?(?:\s+advised)?|inv\.?|tests?(?:\s+advised)?|lab(?:\s+tests?)?|advised|adv\.?|जांच|जाँच|परीक्षण)\b[^:\n]*:\s*(.*)$/iu;
+
+/** The items written under an "Investigation(s)" heading, on the same line or on the lines that follow it. */
+function investigationItems(lines: string[]): string[] {
+  const items: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = INVESTIGATION_LABEL.exec(lines[i] as string);
+    if (!m) continue;
+    const chunks: string[] = [m[1] ?? ""];
+    for (let j = i + 1; j < Math.min(lines.length, i + 7); j++) {
+      const next = (lines[j] as string).trim();
+      if (!next || /^(?:rx|℞)(?![\p{L}])/iu.test(next) || /^[^:\n]{1,25}:/u.test(next)) break; // the next section starts
+      chunks.push(next);
+    }
+    for (const c of chunks) {
+      for (const part of c.split(/,|;|\+|&|\band\b|और/iu)) {
+        const item = part.replace(/^[\s\d.)\-•*]+/u, "").replace(/[?\s.]+$/u, "").trim();
+        if (item.length >= 3 && !/^(?:nil|none|no|n\/a)\b/iu.test(item) && item.replace(/\[\?\]/gu, "").trim().length >= 3) items.push(item);
+      }
+    }
+  }
+  return [...new Set(items)];
+}
 const UNIT_DAYS: Record<string, number> = { day: 1, days: 1, दिन: 1, week: 7, weeks: 7, हफ्ते: 7, हफ़्ते: 7, हफ्ता: 7, सप्ताह: 7, month: 30, months: 30, महीने: 30, महीना: 30, माह: 30 };
 
 function intervalDays(line: string): number | null {
@@ -49,7 +86,7 @@ export function planPrescription(
   // a sentence ends at a line break, or at a full stop that is not the one in "Dr." or "Mr."
   const lines = text.split(/\r?\n|(?<=[.;])(?<!\b(?:Dr|Mr|Mrs|Ms|Prof)\.)\s+/u).map((l) => l.trim()).filter((l) => l.length >= 4);
   for (const line of lines) {
-    if (!CLUE.test(line)) continue;
+    if (!CLUE.test(line) || isEmptyOrSignature(line)) continue;
     const evidence = line.length > 140 ? `${line.slice(0, 137)}...` : line;
     const afterDays = intervalDays(line);
     const refer = REFER.test(line);
@@ -72,5 +109,10 @@ export function planPrescription(
     // a follow-up with no doctor and no department: the patient's own doctor is not known from the paper
     visits.push({ kind: refer ? "REFERRAL" : "FOLLOW_UP", doctorId: null, doctorName: null, departmentFragment: null, afterDays: afterDays ?? 0, confidence: "MEDIUM", evidence, why: "no doctor or department on the line" });
   }
-  return { tests, visits };
+  const covered = tests.map((t) => normalizeText(t.matched)).filter(Boolean);
+  const unmatched = investigationItems(text.split(/\r?\n/u)).filter((item) => {
+    const n = normalizeText(item);
+    return n.length >= 3 && !covered.some((c) => n.includes(c) || c.includes(n));
+  });
+  return { tests, visits, unmatched };
 }

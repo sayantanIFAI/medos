@@ -14,3 +14,4 @@ export * from "./pod-client";
 export * from "./medos-client";
 export * from "./app-kit";
 export * from "./http";
+export * from "./phonetic";

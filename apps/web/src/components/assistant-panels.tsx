@@ -350,9 +350,10 @@ export function LabPanel() {
       </Card>
       <Card title="Upcoming lab bookings">
         {bookings.isLoading ? <Spinner /> : (
-          <Table head={["Collection", "Patient", "Tests", "Total", "Booked from"]} {...(bookings.data?.data.length === 0 ? { empty: "No lab bookings yet." } : {})}>
+          <Table head={["Ref", "Collection", "Patient", "Tests", "Total", "Booked from"]} {...(bookings.data?.data.length === 0 ? { empty: "No lab bookings yet." } : {})}>
             {bookings.data?.data.map((b) => (
               <tr key={b.id}>
+                <Td className="font-mono text-xs">{b.id.slice(0, 8).toUpperCase()}</Td>
                 <Td>{dateTime(b.collectionAt)}{b.homeCollection && <div className="text-xs text-slate-500">{t("Home collection")}</div>}</Td>
                 <Td><span className="font-medium">{b.patientName}</span> <span className="text-slate-500">· {b.mrn}</span></Td>
                 <Td className="text-slate-700">{b.items.map((i) => i.name).join(", ")}</Td>

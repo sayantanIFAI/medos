@@ -83,6 +83,22 @@ describe("patient registration, search and duplicate detection", () => {
     assert.ok(await t.prisma.patient.count({ where: { tenantId: a.tenantId } }) > 0);
   });
 
+  it("finds a patient saved in Devanagari from the English spelling, and the other way round (by sound)", async () => {
+    const p = await registerPatient(t, rec.token, { firstName: "पवन", lastName: "कुमार", mobile: randomMobile() });
+    for (const q of ["pava", "pavan", "Pawan Kumar", "kumar", "पवन"]) {
+      const r = await t.api("get", "/patients", rec.token).query({ q });
+      assert.ok(r.body.data.some((x: { id: string }) => x.id === p.id), q);
+    }
+    const none = await t.api("get", "/patients", rec.token).query({ q: "sunita" });
+    assert.ok(!none.body.data.some((x: { id: string }) => x.id === p.id), "a different name is not offered");
+    const latin = await registerPatient(t, rec.token, { firstName: "Sunita", lastName: "Devi", mobile: randomMobile() });
+    const back = await t.api("get", "/patients", rec.token).query({ q: "सुनीता" });
+    assert.ok(back.body.data.some((x: { id: string }) => x.id === latin.id), "Devanagari query finds the English spelling");
+    // other hospitals are never searched
+    const other = await t.makeUser(b, ["RECEPTIONIST"]);
+    assert.ok(!(await t.api("get", "/patients", other.token).query({ q: "pavan" })).body.data.some((x: { id: string }) => x.id === p.id));
+  });
+
   it("enforces permissions: only PATIENT_CREATE can register; PATIENT_READ can search", async () => {
     const doc = await t.makeUser(a, ["DOCTOR"]);
     const cashier = await t.makeUser(a, ["CASHIER"]);

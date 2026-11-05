@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { nameMatchesBySound } from "@medos/frontdesk-core";
 import { DomainError } from "@medos/shared";
 import type { Prisma } from "@medos/database";
 import { z } from "zod";
@@ -142,6 +143,12 @@ export class PatientsService {
     const or: Prisma.PatientWhereInput[] = [{ identifiers: { some: { tenantId: ctx.tenantId, value: { contains: text, mode: "insensitive" } } } }];
     if (digits.length >= 3) or.push({ mobile: { contains: digits } });
     if (/\p{L}/u.test(text) && normalized.length >= 2) or.push({ searchName: { contains: normalized } });
+    // A name typed in English letters also finds the same name saved in Devanagari ("pavan" and "पवन"), and the other way round: match by sound.
+    if (/\p{L}/u.test(text)) {
+      const pool = await this.prisma.patient.findMany({ where: { tenantId: ctx.tenantId }, select: { id: true, firstName: true, lastName: true }, orderBy: { createdAt: "desc" }, take: 5000 });
+      const ids = pool.filter((p) => nameMatchesBySound(text, [p.firstName, p.lastName].filter(Boolean).join(" "))).map((p) => p.id).slice(0, 100);
+      if (ids.length) or.push({ id: { in: ids } });
+    }
     const where: Prisma.PatientWhereInput = { tenantId: ctx.tenantId, OR: or };
     const [rows, total] = await Promise.all([
       this.prisma.patient.findMany({ where, include: PATIENT_INCLUDE, orderBy: [{ createdAt: "desc" }], skip: (q.page - 1) * q.pageSize, take: q.pageSize }),

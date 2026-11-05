@@ -155,6 +155,10 @@ describe("front-desk API (voicebot app and OCR app)", () => {
     assert.ok(found.some((x) => x.id === p.id), "the patient is offered");
     assert.ok(found.every((x) => (x.mobileLast4 ?? "").length <= 4), "only the last digits of a mobile number are shown");
     assert.equal((await ocrApp.searchPatients("zzzznobodyzzzz")).length, 0);
+    // a patient the voicebot saved in Devanagari is found from the English spelling on a prescription, and the other way round
+    const { patientId: devId } = await voicebot.resolvePatient("script-ref-0001", { name: "पवन कुमार", mobile: "9830055667", ageYears: 30, sex: "UNKNOWN" });
+    for (const q of ["pavan", "Pawan Kumar", "पवन"]) assert.ok((await ocrApp.searchPatients(q)).some((x) => x.id === devId), q);
+    assert.ok(!(await ocrApp.searchPatients("sunita")).some((x) => x.id === devId), "a different name is not offered");
   });
 
   it("one journey per patient: the voicebot booking, the scanned paper, the lab test and the follow-up, labelled by where they came from", async () => {

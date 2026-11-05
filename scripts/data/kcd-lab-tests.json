@@ -1,704 +1,735 @@
 {
- "note": "Demo snapshot of the Kolkata Care Diagnostics lab-test catalogue (fictional rates). Source: voicebot repo seed at commit c587a2e.",
- "tests": [
-  {
-   "name": "Complete Blood Count (CBC)",
-   "rateInr": 400,
-   "sample": "Blood",
-   "reportHours": 6,
-   "fasting": false,
-   "aliases": [
-    "blood count",
-    "blood picture",
-    "cbc test",
-    "cbp",
-    "complete blood count",
-    "complete blood picture",
-    "complete blood profile",
-    "complete haemogram",
-    "complete hemogram",
-    "full blood count",
-    "full blood picture",
-    "haemogram",
-    "hemogram",
-    "कंप्लीट ब्लड काउंट",
-    "कंप्लीट ब्लड पिक्चर",
-    "कंप्लीट ब्लड प्रोफाइल",
-    "कम्प्लीट ब्लड काउंट",
-    "कम्प्लीट ब्लड प्रोफाइल",
-    "फुल ब्लड काउंट",
-    "ब्लड काउंट",
-    "ब्लड प्रोफाइल",
-    "सी बी सी",
-    "सी बी सी टेस्ट",
-    "सीबीसी",
-    "सीबीसी टेस्ट",
-    "हीमोग्राम",
-    "কমপ্লিট ব্লাড কাউন্ট",
-    "কমপ্লিট ব্লাড পিকচার",
-    "কমপ্লিট ব্লাড প্রোফাইল",
-    "কম্প্লিট ব্লাড কাউন্ট",
-    "কম্প্লিট ব্লাড প্রোফাইল",
-    "কম্প্লেট বার্ড প্রোফাইল",
-    "কম্প্লেট ব্লাড প্রোফাইল",
-    "ফুল ব্লাড কাউন্ট",
-    "ব্লাড কাউন্ট",
-    "ব্লাড পিকচার",
-    "ব্লাড প্রোফাইল",
-    "সি বি সি",
-    "সি বি সি টেস্ট",
-    "সিবিসি",
-    "সিবিসি টেস্ট",
-    "হিমোগ্রাম",
-    "হেমোগ্রাম"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "ESR",
-   "rateInr": 150,
-   "sample": "Blood",
-   "reportHours": 6,
-   "fasting": false,
-   "aliases": [
-    "erythrocyte sedimentation rate",
-    "sed rate",
-    "ई एस आर",
-    "ईएसआर",
-    "ই এস আর",
-    "ইএসআর"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Blood Sugar Fasting",
-   "rateInr": 120,
-   "sample": "Blood",
-   "reportHours": 4,
-   "fasting": true,
-   "aliases": [
-    "empty stomach sugar",
-    "empty stomach sugar test",
-    "fasting blood sugar",
-    "fasting sugar",
-    "sugar fasting",
-    "खाली पेट शुगर",
-    "ब्लड शुगर फास्टिंग",
-    "शुगर फास्टिंग",
-    "খালি পেটে সুগার",
-    "ব্লাড সুগার ফাস্টিং",
-    "সুগার ফাস্টিং"
-   ],
-   "prepEn": "Do not eat anything for at least eight hours before this test; you may drink water. It is best to come in the morning on an empty stomach.",
-   "prepHi": "इस टेस्ट से पहले कम से कम आठ घंटे कुछ न खाएँ, सिर्फ़ पानी पी सकते हैं। सुबह खाली पेट आकर टेस्ट कराना बेहतर है।"
-  },
-  {
-   "name": "Blood Sugar PP",
-   "rateInr": 120,
-   "sample": "Blood",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "post prandial sugar",
-    "postprandial blood sugar",
-    "pp sugar",
-    "sugar after food",
-    "sugar after meals",
-    "खाने के बाद शुगर",
-    "पीपी शुगर",
-    "शुगर पीपी",
-    "খাওয়ার পরে সুগার",
-    "পিপি সুগার",
-    "সুগার পিপি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "HbA1c",
-   "rateInr": 650,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "glycated hemoglobin",
-    "glycosylated hemoglobin",
-    "hb a1c",
-    "hba1c",
-    "एचबीए वन सी",
-    "हीमोग्लोबिन ए वन सी",
-    "এইচবিএ১সি",
-    "হিমোগ্লোবিন এ১সি"
-   ],
-   "prepEn": "No fasting is needed for this test; you can have it after your normal meals.",
-   "prepHi": "इस टेस्ट के लिए उपवास की ज़रूरत नहीं है, सामान्य खाने के बाद भी करा सकते हैं।"
-  },
-  {
-   "name": "Lipid Profile",
-   "rateInr": 650,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": true,
-   "aliases": [
-    "cholesterol",
-    "cholesterol test",
-    "lipid test",
-    "कोलेस्ट्रॉल टेस्ट",
-    "लिपिड प्रोफाइल",
-    "কোলেস্টেরল টেস্ট",
-    "লিপিড প্রোফাইল"
-   ],
-   "prepEn": "Fast for ten to twelve hours before this test, nothing except water. A light meal the night before is best.",
-   "prepHi": "इस टेस्ट से पहले दस से बारह घंटे उपवास रखना होगा, पानी के अलावा कुछ न लें। पिछली रात हल्का खाना खाना अच्छा रहता है।"
-  },
-  {
-   "name": "Liver Function Test (LFT)",
-   "rateInr": 800,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": true,
-   "aliases": [
-    "jaundice test",
-    "liver function test",
-    "liver profile",
-    "liver test",
-    "एलएफटी",
-    "पीलिया का टेस्ट",
-    "पीलिया टेस्ट",
-    "लिवर टेस्ट",
-    "लिवर फंक्शन टेस्ट",
-    "এলএফটি",
-    "জন্ডিস টেস্ট",
-    "জন্ডিসের টেস্ট",
-    "লিভার টেস্ট",
-    "লিভার ফাংশন টেস্ট"
-   ],
-   "prepEn": "Fasting for eight hours is advised before this test.",
-   "prepHi": "इस टेस्ट से पहले आठ घंटे उपवास रखने की सलाह दी जाती है।"
-  },
-  {
-   "name": "Kidney Function Test (KFT)",
-   "rateInr": 750,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": true,
-   "aliases": [
-    "kidney function test",
-    "kidney test",
-    "renal function test",
-    "किडनी टेस्ट",
-    "किडनी फंक्शन टेस्ट",
-    "केएफटी",
-    "কিডনি টেস্ট",
-    "কিডনি ফাংশন টেস্ট",
-    "কেএফটি"
-   ],
-   "prepEn": "Fasting for six to eight hours is advised before this test.",
-   "prepHi": "इस टेस्ट से पहले छह से आठ घंटे उपवास रखने की सलाह दी जाती है।"
-  },
-  {
-   "name": "Thyroid Profile (T3 T4 TSH)",
-   "rateInr": 700,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "t3 t4 tsh",
-    "thyroid",
-    "thyroid function test",
-    "thyroid panel",
-    "thyroid profile",
-    "thyroid test",
-    "थाइराइड टेस्ट",
-    "थाइरॉइड",
-    "थायराइड",
-    "थायराइड टेस्ट",
-    "थायराइड प्रोफाइल",
-    "थायरॉइड",
-    "থাইড্রইড",
-    "থাইরয়েড",
-    "থাইরয়েড টেস্ট",
-    "থাইরয়েড প্রোফাইল",
-    "থাইরাইড",
-    "থাইরাইড টেস্ট",
-    "হাইড্রাইড"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "TSH",
-   "rateInr": 350,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "thyroid stimulating hormone",
-    "टीएसएच",
-    "টিএসএইচ"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Urine Routine Examination",
-   "rateInr": 200,
-   "sample": "Urine",
-   "reportHours": 6,
-   "fasting": false,
-   "aliases": [
-    "pee test",
-    "urine check",
-    "urine examination",
-    "urine routine",
-    "urine test",
-    "पेशाब का टेस्ट",
-    "पेशाब की जाँच",
-    "पेशाब की जांच",
-    "पेशाब टेस्ट",
-    "मूत्र का टेस्ट",
-    "मूत्र की जांच",
-    "मूत्र जांच",
-    "मूत्र टेस्ट",
-    "मूत्र परीक्षण",
-    "यूरिन का टेस्ट",
-    "यूरिन की जांच",
-    "यूरिन टेस्ट",
-    "यूरिन रूटीन",
-    "ইউরিন টেস্ট",
-    "ইউরিন রুটিন",
-    "প্রস্রাব পরীক্ষা"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Widal Test",
-   "rateInr": 250,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "typhoid fever test",
-    "typhoid test",
-    "widal",
-    "टाइफाइड टेस्ट",
-    "विडाल टेस्ट",
-    "উইডাল টেস্ট",
-    "ওয়াইডাল টেস্ট",
-    "টাইফয়েড টেস্ট"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Dengue NS1 Antigen",
-   "rateInr": 900,
-   "sample": "Blood",
-   "reportHours": 6,
-   "fasting": false,
-   "aliases": [
-    "dengue antigen",
-    "dengue ns1",
-    "dengue test",
-    "डेंगू एनएस वन",
-    "डेंगू टेस्ट",
-    "ডেঙ্গু এনএস১",
-    "ডেঙ্গু টেস্ট"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Dengue IgG/IgM",
-   "rateInr": 900,
-   "sample": "Blood",
-   "reportHours": 6,
-   "fasting": false,
-   "aliases": [
-    "dengue antibody test",
-    "dengue igg",
-    "dengue igm",
-    "डेंगू आईजीएम",
-    "डेंगू आईजीजी",
-    "ডেঙ্গু আইজিএম",
-    "ডেঙ্গু আইজিজি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Malaria Antigen",
-   "rateInr": 400,
-   "sample": "Blood",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "malaria antigen test",
-    "malaria test",
-    "मलेरिया एंटीजन",
-    "मलेरिया टेस्ट",
-    "ম্যালেরিয়া এন্টিজেন",
-    "ম্যালেরিয়া টেস্ট"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "CRP (C-Reactive Protein)",
-   "rateInr": 500,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "c reactive protein",
-    "crp test",
-    "सीआरपी",
-    "সিআরপি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Vitamin D (25-OH)",
-   "rateInr": 1800,
-   "sample": "Blood",
-   "reportHours": 72,
-   "fasting": false,
-   "aliases": [
-    "vit d",
-    "vitamin d",
-    "vitamin d test",
-    "विटामिन डी",
-    "ভিটামিন ডি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Vitamin B12",
-   "rateInr": 1200,
-   "sample": "Blood",
-   "reportHours": 48,
-   "fasting": false,
-   "aliases": [
-    "b12 test",
-    "vit b12",
-    "vitamin b12",
-    "बी बारह",
-    "विटामिन बी बारह",
-    "বি১২",
-    "ভিটামিন বি১২"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Serum Creatinine",
-   "rateInr": 250,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "creatinine",
-    "creatinine test",
-    "क्रिएटिनिन",
-    "सीरम क्रिएटिनिन",
-    "ক্রিয়াটিনিন",
-    "সিরাম ক্রিয়াটিনিন"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Serum Electrolytes",
-   "rateInr": 450,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "electrolyte test",
-    "electrolytes",
-    "sodium potassium test",
-    "इलेक्ट्रोलाइट टेस्ट",
-    "इलेक्ट्रोलाइट्स",
-    "ইলেকট্রোলাইট টেস্ট",
-    "ইলেক্ট্রোলাইটস"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Blood Grouping & Rh Typing",
-   "rateInr": 200,
-   "sample": "Blood",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "blood group",
-    "blood group test",
-    "blood grouping",
-    "blood type test",
-    "rh typing",
-    "खून का ग्रुप",
-    "ब्लड ग्रुप",
-    "ব্লাড গ্রুপ",
-    "রক্তের গ্রুপ"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "HIV Test (ELISA)",
-   "rateInr": 500,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "aids",
-    "aids test",
-    "hiv",
-    "hiv test",
-    "एचआईवी टेस्ट",
-    "एड्स टेस्ट",
-    "এইচআইভি টেস্ট",
-    "এইডস টেস্ট"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "HBsAg",
-   "rateInr": 400,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "hep b",
-    "hepatitis b",
-    "hepatitis b test",
-    "एचबीएसएजी",
-    "हेपेटाइटिस बी",
-    "এইচবিএসএজি",
-    "হেপাটাইটিস বি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "HCV",
-   "rateInr": 600,
-   "sample": "Blood",
-   "reportHours": 24,
-   "fasting": false,
-   "aliases": [
-    "hep c",
-    "hepatitis c",
-    "hepatitis c test",
-    "एचसीवी",
-    "हेपेटाइटिस सी",
-    "এইচসিভি",
-    "হেপাটাইটিস সি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "ECG",
-   "rateInr": 300,
-   "sample": "Cardiac",
-   "reportHours": 1,
-   "fasting": false,
-   "aliases": [
-    "ecg test",
-    "ekg",
-    "electrocardiogram",
-    "heart tracing",
-    "इलेक्ट्रोकार्डियोग्राम",
-    "ईसीजी",
-    "ইলেক্ট্রোকার্ডিওগ্রাম",
-    "ইসিজি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Chest X-Ray (PA view)",
-   "rateInr": 400,
-   "sample": "Imaging",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "chest picture",
-    "chest x-ray",
-    "chest xray",
-    "lung x-ray",
-    "चेस्ट एक्सरे",
-    "छाती का एक्स-रे",
-    "छाती की तस्वीर",
-    "छाती की फोटो",
-    "চেস্ট এক্সরে",
-    "বুকের এক্স-রে",
-    "বুকের এক্সরে",
-    "বুকের ছবি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "USG Whole Abdomen",
-   "rateInr": 1500,
-   "sample": "Imaging",
-   "reportHours": 4,
-   "fasting": true,
-   "aliases": [
-    "abdomen scan",
-    "abdomen ultrasound",
-    "belly scan",
-    "stomach picture",
-    "stomach scan",
-    "stomach test",
-    "stomach ultrasound",
-    "पेट का अल्ट्रासाउंड",
-    "पेट का यूएसजी",
-    "यूएसजी",
-    "होल एब्डोमेन यूएसजी",
-    "ইউএসজি",
-    "পেটের আলট্রাসাউন্ড",
-    "পেটের ইউএসজি",
-    "হোল অ্যাবডোমেন ইউএসজি"
-   ],
-   "prepEn": "Do not eat anything for six hours before this test, and hold your urine; the bladder needs to be full.",
-   "prepHi": "इस टेस्ट से पहले छह घंटे कुछ न खाएँ और पेशाब रोककर रखें, मूत्राशय भरा होना ज़रूरी है।"
-  },
-  {
-   "name": "USG Pregnancy Profile",
-   "rateInr": 1600,
-   "sample": "Imaging",
-   "reportHours": 4,
-   "fasting": true,
-   "aliases": [
-    "pregnancy scan",
-    "pregnancy ultrasound",
-    "pregnancy usg",
-    "प्रेगनेंसी अल्ट्रासाउंड",
-    "प्रेगनेंसी यूएसजी",
-    "यूएसजी",
-    "ইউএসজি",
-    "প্রেগনেন্সি ইউএসজি",
-    "প্রেগন্যান্সি আলট্রাসাউন্ড"
-   ],
-   "prepEn": "Drink plenty of water before this test to keep your bladder full, and do not urinate just before the test.",
-   "prepHi": "इस टेस्ट से पहले ज़्यादा पानी पिएँ ताकि मूत्राशय भरा रहे, और टेस्ट से ठीक पहले पेशाब न करें।"
-  },
-  {
-   "name": "2D Echocardiography",
-   "rateInr": 2000,
-   "sample": "Cardiac",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "2d echo",
-    "echo",
-    "echo test",
-    "echocardiogram",
-    "heart ultrasound",
-    "इको टेस्ट",
-    "इकोकार्डियोग्राम",
-    "एकोकार्डियोग्राफी",
-    "दिल का अल्ट्रासाउंड",
-    "दिल की फोटो",
-    "ইকো টেস্ট",
-    "ইকোকার্ডিওগ্রাম",
-    "একোকার্ডিওগ্রাফি",
-    "হার্টের আলট্রাসাউন্ড",
-    "হার্টের ছবি"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "TMT (Treadmill Test)",
-   "rateInr": 2200,
-   "sample": "Cardiac",
-   "reportHours": 4,
-   "fasting": false,
-   "aliases": [
-    "stress test",
-    "tmt test",
-    "treadmill test",
-    "टीएमटी",
-    "ट्रेडमिल टेस्ट",
-    "টিএমটি",
-    "ট্রেডমিল টেস্ট"
-   ],
-   "prepEn": "Wear light, comfortable clothes and shoes. It is best not to eat a heavy meal in the two hours before the test.",
-   "prepHi": "हल्के, आरामदायक कपड़े और जूते पहनकर आएँ। टेस्ट से दो घंटे पहले भारी खाना न खाना बेहतर है।"
-  },
-  {
-   "name": "Pap Smear",
-   "rateInr": 900,
-   "sample": "Sample (Cervical)",
-   "reportHours": 72,
-   "fasting": false,
-   "aliases": [
-    "pap smear test",
-    "pap test",
-    "पैप स्मियर",
-    "প্যাপ স্মিয়ার"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "PSA (Prostate Specific Antigen)",
-   "rateInr": 900,
-   "sample": "Blood",
-   "reportHours": 48,
-   "fasting": false,
-   "aliases": [
-    "prostate test",
-    "psa test",
-    "पीएसए",
-    "পিএসএ"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Uric Acid",
-   "rateInr": 250,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "यूरिक एसिड",
-    "ইউরিক অ্যাসিড",
-    "ইউরিক এসিড",
-    "ইউরিক এসিদ"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  },
-  {
-   "name": "Calcium (Serum)",
-   "rateInr": 250,
-   "sample": "Blood",
-   "reportHours": 12,
-   "fasting": false,
-   "aliases": [
-    "calcium",
-    "calcium test",
-    "serum calcium",
-    "कैल्शियम",
-    "सीरम कैल्शियम",
-    "ক্যালসিয়াম",
-    "সিরাম ক্যালসিয়াম"
-   ],
-   "prepEn": "No special preparation is needed for this test; you can come in normally.",
-   "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
-  }
- ]
+  "note": "Demo snapshot of the Kolkata Care Diagnostics lab-test catalogue (fictional rates). Source: voicebot repo seed at commit c587a2e.",
+  "tests": [
+    {
+      "name": "Complete Blood Count (CBC)",
+      "rateInr": 400,
+      "sample": "Blood",
+      "reportHours": 6,
+      "fasting": false,
+      "aliases": [
+        "blood count",
+        "blood picture",
+        "cbc test",
+        "cbp",
+        "complete blood count",
+        "complete blood picture",
+        "complete blood profile",
+        "complete haemogram",
+        "complete hemogram",
+        "full blood count",
+        "full blood picture",
+        "haemogram",
+        "hemogram",
+        "कंप्लीट ब्लड काउंट",
+        "कंप्लीट ब्लड पिक्चर",
+        "कंप्लीट ब्लड प्रोफाइल",
+        "कम्प्लीट ब्लड काउंट",
+        "कम्प्लीट ब्लड प्रोफाइल",
+        "फुल ब्लड काउंट",
+        "ब्लड काउंट",
+        "ब्लड प्रोफाइल",
+        "सी बी सी",
+        "सी बी सी टेस्ट",
+        "सीबीसी",
+        "सीबीसी टेस्ट",
+        "हीमोग्राम",
+        "কমপ্লিট ব্লাড কাউন্ট",
+        "কমপ্লিট ব্লাড পিকচার",
+        "কমপ্লিট ব্লাড প্রোফাইল",
+        "কম্প্লিট ব্লাড কাউন্ট",
+        "কম্প্লিট ব্লাড প্রোফাইল",
+        "কম্প্লেট বার্ড প্রোফাইল",
+        "কম্প্লেট ব্লাড প্রোফাইল",
+        "ফুল ব্লাড কাউন্ট",
+        "ব্লাড কাউন্ট",
+        "ব্লাড পিকচার",
+        "ব্লাড প্রোফাইল",
+        "সি বি সি",
+        "সি বি সি টেস্ট",
+        "সিবিসি",
+        "সিবিসি টেস্ট",
+        "হিমোগ্রাম",
+        "হেমোগ্রাম"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "ESR",
+      "rateInr": 150,
+      "sample": "Blood",
+      "reportHours": 6,
+      "fasting": false,
+      "aliases": [
+        "erythrocyte sedimentation rate",
+        "sed rate",
+        "ई एस आर",
+        "ईएसआर",
+        "ই এস আর",
+        "ইএসআর"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Blood Sugar Fasting",
+      "rateInr": 120,
+      "sample": "Blood",
+      "reportHours": 4,
+      "fasting": true,
+      "aliases": [
+        "empty stomach sugar",
+        "empty stomach sugar test",
+        "fasting blood sugar",
+        "fasting sugar",
+        "sugar fasting",
+        "खाली पेट शुगर",
+        "ब्लड शुगर फास्टिंग",
+        "शुगर फास्टिंग",
+        "খালি পেটে সুগার",
+        "ব্লাড সুগার ফাস্টিং",
+        "সুগার ফাস্টিং"
+      ],
+      "prepEn": "Do not eat anything for at least eight hours before this test; you may drink water. It is best to come in the morning on an empty stomach.",
+      "prepHi": "इस टेस्ट से पहले कम से कम आठ घंटे कुछ न खाएँ, सिर्फ़ पानी पी सकते हैं। सुबह खाली पेट आकर टेस्ट कराना बेहतर है।"
+    },
+    {
+      "name": "Blood Sugar PP",
+      "rateInr": 120,
+      "sample": "Blood",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "post prandial sugar",
+        "postprandial blood sugar",
+        "pp sugar",
+        "sugar after food",
+        "sugar after meals",
+        "खाने के बाद शुगर",
+        "पीपी शुगर",
+        "शुगर पीपी",
+        "খাওয়ার পরে সুগার",
+        "পিপি সুগার",
+        "সুগার পিপি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "HbA1c",
+      "rateInr": 650,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "glycated hemoglobin",
+        "glycosylated hemoglobin",
+        "hb a1c",
+        "hba1c",
+        "एचबीए वन सी",
+        "हीमोग्लोबिन ए वन सी",
+        "এইচবিএ১সি",
+        "হিমোগ্লোবিন এ১সি"
+      ],
+      "prepEn": "No fasting is needed for this test; you can have it after your normal meals.",
+      "prepHi": "इस टेस्ट के लिए उपवास की ज़रूरत नहीं है, सामान्य खाने के बाद भी करा सकते हैं।"
+    },
+    {
+      "name": "Lipid Profile",
+      "rateInr": 650,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": true,
+      "aliases": [
+        "cholesterol",
+        "cholesterol test",
+        "lipid test",
+        "कोलेस्ट्रॉल टेस्ट",
+        "लिपिड प्रोफाइल",
+        "কোলেস্টেরল টেস্ট",
+        "লিপিড প্রোফাইল"
+      ],
+      "prepEn": "Fast for ten to twelve hours before this test, nothing except water. A light meal the night before is best.",
+      "prepHi": "इस टेस्ट से पहले दस से बारह घंटे उपवास रखना होगा, पानी के अलावा कुछ न लें। पिछली रात हल्का खाना खाना अच्छा रहता है।"
+    },
+    {
+      "name": "Liver Function Test (LFT)",
+      "rateInr": 800,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": true,
+      "aliases": [
+        "jaundice test",
+        "liver function test",
+        "liver profile",
+        "liver test",
+        "एलएफटी",
+        "पीलिया का टेस्ट",
+        "पीलिया टेस्ट",
+        "लिवर टेस्ट",
+        "लिवर फंक्शन टेस्ट",
+        "এলএফটি",
+        "জন্ডিস টেস্ট",
+        "জন্ডিসের টেস্ট",
+        "লিভার টেস্ট",
+        "লিভার ফাংশন টেস্ট"
+      ],
+      "prepEn": "Fasting for eight hours is advised before this test.",
+      "prepHi": "इस टेस्ट से पहले आठ घंटे उपवास रखने की सलाह दी जाती है।"
+    },
+    {
+      "name": "Kidney Function Test (KFT)",
+      "rateInr": 750,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": true,
+      "aliases": [
+        "kidney function test",
+        "kidney test",
+        "renal function test",
+        "किडनी टेस्ट",
+        "किडनी फंक्शन टेस्ट",
+        "केएफटी",
+        "কিডনি টেস্ট",
+        "কিডনি ফাংশন টেস্ট",
+        "কেএফটি"
+      ],
+      "prepEn": "Fasting for six to eight hours is advised before this test.",
+      "prepHi": "इस टेस्ट से पहले छह से आठ घंटे उपवास रखने की सलाह दी जाती है।"
+    },
+    {
+      "name": "Thyroid Profile (T3 T4 TSH)",
+      "rateInr": 700,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "t3 t4 tsh",
+        "thyroid",
+        "thyroid function test",
+        "thyroid panel",
+        "thyroid profile",
+        "thyroid test",
+        "थाइराइड टेस्ट",
+        "थाइरॉइड",
+        "थायराइड",
+        "थायराइड टेस्ट",
+        "थायराइड प्रोफाइल",
+        "थायरॉइड",
+        "থাইড্রইড",
+        "থাইরয়েড",
+        "থাইরয়েড টেস্ট",
+        "থাইরয়েড প্রোফাইল",
+        "থাইরাইড",
+        "থাইরাইড টেস্ট",
+        "হাইড্রাইড"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "TSH",
+      "rateInr": 350,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "thyroid stimulating hormone",
+        "टीएसएच",
+        "টিএসএইচ"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Urine Routine Examination",
+      "rateInr": 200,
+      "sample": "Urine",
+      "reportHours": 6,
+      "fasting": false,
+      "aliases": [
+        "pee test",
+        "urine check",
+        "urine examination",
+        "urine routine",
+        "urine test",
+        "पेशाब का टेस्ट",
+        "पेशाब की जाँच",
+        "पेशाब की जांच",
+        "पेशाब टेस्ट",
+        "मूत्र का टेस्ट",
+        "मूत्र की जांच",
+        "मूत्र जांच",
+        "मूत्र टेस्ट",
+        "मूत्र परीक्षण",
+        "यूरिन का टेस्ट",
+        "यूरिन की जांच",
+        "यूरिन टेस्ट",
+        "यूरिन रूटीन",
+        "ইউরিন টেস্ট",
+        "ইউরিন রুটিন",
+        "প্রস্রাব পরীক্ষা"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Widal Test",
+      "rateInr": 250,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "typhoid fever test",
+        "typhoid test",
+        "widal",
+        "टाइफाइड टेस्ट",
+        "विडाल टेस्ट",
+        "উইডাল টেস্ট",
+        "ওয়াইডাল টেস্ট",
+        "টাইফয়েড টেস্ট"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Dengue NS1 Antigen",
+      "rateInr": 900,
+      "sample": "Blood",
+      "reportHours": 6,
+      "fasting": false,
+      "aliases": [
+        "dengue antigen",
+        "dengue ns1",
+        "dengue test",
+        "डेंगू एनएस वन",
+        "डेंगू टेस्ट",
+        "ডেঙ্গু এনএস১",
+        "ডেঙ্গু টেস্ট"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Dengue IgG/IgM",
+      "rateInr": 900,
+      "sample": "Blood",
+      "reportHours": 6,
+      "fasting": false,
+      "aliases": [
+        "dengue antibody test",
+        "dengue igg",
+        "dengue igm",
+        "डेंगू आईजीएम",
+        "डेंगू आईजीजी",
+        "ডেঙ্গু আইজিএম",
+        "ডেঙ্গু আইজিজি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Malaria Antigen",
+      "rateInr": 400,
+      "sample": "Blood",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "malaria antigen test",
+        "malaria test",
+        "मलेरिया एंटीजन",
+        "मलेरिया टेस्ट",
+        "ম্যালেরিয়া এন্টিজেন",
+        "ম্যালেরিয়া টেস্ট"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "CRP (C-Reactive Protein)",
+      "rateInr": 500,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "c reactive protein",
+        "crp test",
+        "सीआरपी",
+        "সিআরপি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Vitamin D (25-OH)",
+      "rateInr": 1800,
+      "sample": "Blood",
+      "reportHours": 72,
+      "fasting": false,
+      "aliases": [
+        "vit d",
+        "vitamin d",
+        "vitamin d test",
+        "विटामिन डी",
+        "ভিটামিন ডি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Vitamin B12",
+      "rateInr": 1200,
+      "sample": "Blood",
+      "reportHours": 48,
+      "fasting": false,
+      "aliases": [
+        "b12 test",
+        "vit b12",
+        "vitamin b12",
+        "बी बारह",
+        "विटामिन बी बारह",
+        "বি১২",
+        "ভিটামিন বি১২"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Serum Creatinine",
+      "rateInr": 250,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "creatinine",
+        "creatinine test",
+        "क्रिएटिनिन",
+        "सीरम क्रिएटिनिन",
+        "ক্রিয়াটিনিন",
+        "সিরাম ক্রিয়াটিনিন"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Serum Electrolytes",
+      "rateInr": 450,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "electrolyte test",
+        "electrolytes",
+        "sodium potassium test",
+        "इलेक्ट्रोलाइट टेस्ट",
+        "इलेक्ट्रोलाइट्स",
+        "ইলেকট্রোলাইট টেস্ট",
+        "ইলেক্ট্রোলাইটস"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Blood Grouping & Rh Typing",
+      "rateInr": 200,
+      "sample": "Blood",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "blood group",
+        "blood group test",
+        "blood grouping",
+        "blood type test",
+        "rh typing",
+        "खून का ग्रुप",
+        "ब्लड ग्रुप",
+        "ব্লাড গ্রুপ",
+        "রক্তের গ্রুপ"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "HIV Test (ELISA)",
+      "rateInr": 500,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "aids",
+        "aids test",
+        "hiv",
+        "hiv test",
+        "एचआईवी टेस्ट",
+        "एड्स टेस्ट",
+        "এইচআইভি টেস্ট",
+        "এইডস টেস্ট"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "HBsAg",
+      "rateInr": 400,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "hep b",
+        "hepatitis b",
+        "hepatitis b test",
+        "एचबीएसएजी",
+        "हेपेटाइटिस बी",
+        "এইচবিএসএজি",
+        "হেপাটাইটিস বি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "HCV",
+      "rateInr": 600,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "aliases": [
+        "hep c",
+        "hepatitis c",
+        "hepatitis c test",
+        "एचसीवी",
+        "हेपेटाइटिस सी",
+        "এইচসিভি",
+        "হেপাটাইটিস সি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "ECG",
+      "rateInr": 300,
+      "sample": "Cardiac",
+      "reportHours": 1,
+      "fasting": false,
+      "aliases": [
+        "ecg test",
+        "ekg",
+        "electrocardiogram",
+        "heart tracing",
+        "इलेक्ट्रोकार्डियोग्राम",
+        "ईसीजी",
+        "ইলেক্ট্রোকার্ডিওগ্রাম",
+        "ইসিজি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Chest X-Ray (PA view)",
+      "rateInr": 400,
+      "sample": "Imaging",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "chest picture",
+        "chest x-ray",
+        "chest xray",
+        "lung x-ray",
+        "चेस्ट एक्सरे",
+        "छाती का एक्स-रे",
+        "छाती की तस्वीर",
+        "छाती की फोटो",
+        "চেস্ট এক্সরে",
+        "বুকের এক্স-রে",
+        "বুকের এক্সরে",
+        "বুকের ছবি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "USG Whole Abdomen",
+      "rateInr": 1500,
+      "sample": "Imaging",
+      "reportHours": 4,
+      "fasting": true,
+      "aliases": [
+        "abdomen scan",
+        "abdomen ultrasound",
+        "belly scan",
+        "stomach picture",
+        "stomach scan",
+        "stomach test",
+        "stomach ultrasound",
+        "पेट का अल्ट्रासाउंड",
+        "पेट का यूएसजी",
+        "यूएसजी",
+        "होल एब्डोमेन यूएसजी",
+        "ইউএসজি",
+        "পেটের আলট্রাসাউন্ড",
+        "পেটের ইউএসজি",
+        "হোল অ্যাবডোমেন ইউএসজি"
+      ],
+      "prepEn": "Do not eat anything for six hours before this test, and hold your urine; the bladder needs to be full.",
+      "prepHi": "इस टेस्ट से पहले छह घंटे कुछ न खाएँ और पेशाब रोककर रखें, मूत्राशय भरा होना ज़रूरी है।"
+    },
+    {
+      "name": "USG Pregnancy Profile",
+      "rateInr": 1600,
+      "sample": "Imaging",
+      "reportHours": 4,
+      "fasting": true,
+      "aliases": [
+        "pregnancy scan",
+        "pregnancy ultrasound",
+        "pregnancy usg",
+        "प्रेगनेंसी अल्ट्रासाउंड",
+        "प्रेगनेंसी यूएसजी",
+        "यूएसजी",
+        "ইউএসজি",
+        "প্রেগনেন্সি ইউএসজি",
+        "প্রেগন্যান্সি আলট্রাসাউন্ড"
+      ],
+      "prepEn": "Drink plenty of water before this test to keep your bladder full, and do not urinate just before the test.",
+      "prepHi": "इस टेस्ट से पहले ज़्यादा पानी पिएँ ताकि मूत्राशय भरा रहे, और टेस्ट से ठीक पहले पेशाब न करें।"
+    },
+    {
+      "name": "2D Echocardiography",
+      "rateInr": 2000,
+      "sample": "Cardiac",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "2d echo",
+        "echo",
+        "echo test",
+        "echocardiogram",
+        "heart ultrasound",
+        "इको टेस्ट",
+        "इकोकार्डियोग्राम",
+        "एकोकार्डियोग्राफी",
+        "दिल का अल्ट्रासाउंड",
+        "दिल की फोटो",
+        "ইকো টেস্ট",
+        "ইকোকার্ডিওগ্রাম",
+        "একোকার্ডিওগ্রাফি",
+        "হার্টের আলট্রাসাউন্ড",
+        "হার্টের ছবি"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "TMT (Treadmill Test)",
+      "rateInr": 2200,
+      "sample": "Cardiac",
+      "reportHours": 4,
+      "fasting": false,
+      "aliases": [
+        "stress test",
+        "tmt test",
+        "treadmill test",
+        "टीएमटी",
+        "ट्रेडमिल टेस्ट",
+        "টিএমটি",
+        "ট্রেডমিল টেস্ট"
+      ],
+      "prepEn": "Wear light, comfortable clothes and shoes. It is best not to eat a heavy meal in the two hours before the test.",
+      "prepHi": "हल्के, आरामदायक कपड़े और जूते पहनकर आएँ। टेस्ट से दो घंटे पहले भारी खाना न खाना बेहतर है।"
+    },
+    {
+      "name": "Pap Smear",
+      "rateInr": 900,
+      "sample": "Sample (Cervical)",
+      "reportHours": 72,
+      "fasting": false,
+      "aliases": [
+        "pap smear test",
+        "pap test",
+        "पैप स्मियर",
+        "প্যাপ স্মিয়ার"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "PSA (Prostate Specific Antigen)",
+      "rateInr": 900,
+      "sample": "Blood",
+      "reportHours": 48,
+      "fasting": false,
+      "aliases": [
+        "prostate test",
+        "psa test",
+        "पीएसए",
+        "পিএসএ"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Uric Acid",
+      "rateInr": 250,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "यूरिक एसिड",
+        "ইউরিক অ্যাসিড",
+        "ইউরিক এসিড",
+        "ইউরিক এসিদ"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Calcium (Serum)",
+      "rateInr": 250,
+      "sample": "Blood",
+      "reportHours": 12,
+      "fasting": false,
+      "aliases": [
+        "calcium",
+        "calcium test",
+        "serum calcium",
+        "कैल्शियम",
+        "सीरम कैल्शियम",
+        "ক্যালসিয়াম",
+        "সিরাম ক্যালসিয়াম"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    },
+    {
+      "name": "Fever Profile",
+      "rateInr": 1950,
+      "sample": "Blood",
+      "reportHours": 24,
+      "fasting": false,
+      "includes": [
+        "Complete Blood Count (CBC)",
+        "Malaria Antigen",
+        "Dengue NS1 Antigen",
+        "Widal Test"
+      ],
+      "aliases": [
+        "fever profile",
+        "fever panel",
+        "fever test",
+        "blood for fever",
+        "fever work up",
+        "fever workup",
+        "tests for fever",
+        "बुखार की जांच",
+        "बुखार प्रोफाइल",
+        "फीवर प्रोफाइल",
+        "फीवर पैनल",
+        "बुखार टेस्ट",
+        "জ্বরের পরীক্ষা",
+        "ফিভার প্রোফাইল"
+      ],
+      "prepEn": "No special preparation is needed for this test; you can come in normally.",
+      "prepHi": "इस टेस्ट के लिए किसी ख़ास तैयारी की ज़रूरत नहीं है, आप सामान्य रूप से आकर करा सकते हैं।"
+    }
+  ]
 }

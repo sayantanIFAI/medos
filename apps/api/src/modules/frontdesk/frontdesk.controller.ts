@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, Req } from "@nestjs/common";
 import type { Request } from "express";
+import { nameMatchesBySound } from "@medos/frontdesk-core";
 import { DomainError } from "@medos/shared";
 import { z } from "zod";
 import { Ctx, parse, RequirePermissions } from "../../common/http";
@@ -78,13 +79,23 @@ export class FrontDeskController {
     const { q } = parse(searchQuery, query);
     const byIdent = await this.prisma.patientIdentifier.findMany({ where: { tenantId: ctx.tenantId, type: "MRN", value: { contains: q, mode: "insensitive" } }, select: { patientId: true }, take: 8 });
     const words = q.split(/\s+/).filter(Boolean);
+    const select = { id: true, firstName: true, lastName: true, estimatedAgeYears: true, mobile: true } as const;
     const rows = await this.prisma.patient.findMany({
       where: {
         tenantId: ctx.tenantId, status: "ACTIVE",
         OR: [{ id: { in: byIdent.map((x) => x.patientId) } }, { mobile: { contains: q.replace(/\D/g, "") || "no-digits" } }, { AND: words.map((w) => ({ OR: [{ firstName: { contains: w, mode: "insensitive" as const } }, { lastName: { contains: w, mode: "insensitive" as const } }] })) }],
       },
-      select: { id: true, firstName: true, lastName: true, estimatedAgeYears: true, mobile: true }, orderBy: { createdAt: "desc" }, take: 8,
+      select, orderBy: { createdAt: "desc" }, take: 8,
     });
+    // A name typed in English letters ("pavan") must also find the same name saved in Devanagari ("पवन"), and the other way round: match by sound.
+    if (rows.length < 8 && /\p{L}/u.test(q)) {
+      const seen = new Set(rows.map((r) => r.id));
+      const pool = await this.prisma.patient.findMany({ where: { tenantId: ctx.tenantId, status: "ACTIVE" }, select, orderBy: { createdAt: "desc" }, take: 5000 });
+      for (const p of pool) {
+        if (rows.length >= 8) break;
+        if (!seen.has(p.id) && nameMatchesBySound(q, [p.firstName, p.lastName].filter(Boolean).join(" "))) rows.push(p);
+      }
+    }
     const mrns = await this.prisma.patientIdentifier.findMany({ where: { tenantId: ctx.tenantId, type: "MRN", patientId: { in: rows.map((r) => r.id) } }, select: { patientId: true, value: true } });
     const mrnOf = new Map(mrns.map((m) => [m.patientId, m.value]));
     return { data: rows.map((r) => ({ id: r.id, name: [r.firstName, r.lastName].filter(Boolean).join(" "), mrn: mrnOf.get(r.id) ?? null, ageYears: r.estimatedAgeYears, sex: null, mobileLast4: r.mobile ? r.mobile.slice(-4) : null })) };

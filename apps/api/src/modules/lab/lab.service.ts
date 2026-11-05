@@ -30,6 +30,8 @@ export const upsertLabTestSchema = z.object({
   prepEn: z.string().trim().max(400).optional(),
   prepHi: z.string().trim().max(400).optional(),
   aliases: z.array(z.string().trim().min(1).max(60)).max(60).default([]),
+  /** Codes of the tests this one bundles (a "fever profile"). Booking it books exactly these; its rate is the sum of theirs, whatever `price` says. */
+  includes: z.array(z.string().trim().toUpperCase().regex(/^[A-Z0-9][A-Z0-9_-]{0,23}$/)).max(20).default([]),
 }).strict();
 
 export const createLabBookingSchema = z.object({
@@ -47,7 +49,7 @@ export const listLabBookingsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50),
 }).strict();
 
-const TEST = { id: true, code: true, name: true, price: true, sampleType: true, reportHours: true, fastingRequired: true, prepEn: true, prepHi: true, aliases: true } satisfies Prisma.LabTestSelect;
+const TEST = { id: true, code: true, name: true, price: true, sampleType: true, reportHours: true, fastingRequired: true, prepEn: true, prepHi: true, aliases: true, includes: true } satisfies Prisma.LabTestSelect;
 type TestRow = Prisma.LabTestGetPayload<{ select: typeof TEST }>;
 export const toTestView = (t: TestRow) => ({ ...t, price: t.price.toFixed(2) });
 
@@ -85,14 +87,48 @@ export class LabService {
       this.prisma.labTest.findMany({ where, select: TEST, orderBy: { name: "asc" }, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
       this.prisma.labTest.count({ where }),
     ]);
-    return { items: rows.map(toTestView), total };
+    return { items: (await this.priceBundles(this.prisma, ctx, rows)).map(toTestView), total };
+  }
+
+  /** A bundle's rate is the sum of its tests' current rates, so it can never drift from them. Ordinary tests are returned as they are. */
+  private async priceBundles<T extends { includes: string[]; price: { toString(): string } }>(db: Pick<Db, "labTest">, ctx: RequestContext, rows: T[]): Promise<(Omit<T, "price"> & { price: Decimal })[]> {
+    const codes = [...new Set(rows.flatMap((r) => r.includes))];
+    const parts = codes.length ? await db.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE", code: { in: codes } }, select: { code: true, price: true } }) : [];
+    const byCode = new Map(parts.map((p) => [p.code, p.price.toString()]));
+    return rows.map((r) => ({ ...r, price: r.includes.length ? r.includes.reduce((sum, c) => sum.plus(byCode.get(c) ?? "0"), new Decimal(0)) : new Decimal(r.price.toString()) }));
+  }
+
+  /** The tests the assistant needs to quote or book: current rate, report time, fasting and preparation. A bundle takes its rate from its tests, needs fasting if any of them does, and reports when the last of them does. */
+  async testsByIds(ctx: RequestContext, ids: string[]) {
+    const rows = await this.prisma.labTest.findMany({ where: { id: { in: ids }, tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" }, select: TEST });
+    const priced = await this.priceBundles(this.prisma, ctx, rows);
+    const codes = [...new Set(rows.flatMap((r) => r.includes))];
+    const parts = codes.length ? await this.prisma.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE", code: { in: codes } }, select: { code: true, reportHours: true, fastingRequired: true, prepEn: true, prepHi: true } }) : [];
+    return priced.map((r) => {
+      const inc = parts.filter((p) => r.includes.includes(p.code));
+      return {
+        id: r.id, name: r.name, price: r.price.toFixed(2),
+        reportHours: inc.length ? Math.max(r.reportHours, ...inc.map((p) => p.reportHours)) : r.reportHours,
+        fastingRequired: r.fastingRequired || inc.some((p) => p.fastingRequired),
+        prepEn: r.prepEn ?? inc.find((p) => p.prepEn)?.prepEn ?? null, prepHi: r.prepHi ?? inc.find((p) => p.prepHi)?.prepHi ?? null,
+      };
+    });
   }
 
   /** Creates the test, or updates it when the code already exists (so the catalogue can be loaded again safely). */
   async upsertTest(ctx: RequestContext, input: z.infer<typeof upsertLabTestSchema>) {
     return this.prisma.$transaction(async (tx) => {
+      // a bundle lists tests of this hospital that exist, are active, are not bundles themselves, and are not the bundle itself
+      const includes = [...new Set(input.includes)];
+      let price = input.price;
+      if (includes.length) {
+        const parts = await tx.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE", code: { in: includes } }, select: { code: true, price: true, includes: true } });
+        const bad = includes.filter((c) => c === input.code || !parts.some((p) => p.code === c) || parts.find((p) => p.code === c)?.includes.length);
+        if (bad.length) throw new DomainError("VALIDATION_FAILED", `A bundle can only include existing ordinary tests: ${bad.join(", ")}`, 400, [{ path: "includes", message: "Unknown test, the bundle itself, or another bundle" }]);
+        price = parts.reduce((sum, p) => sum.plus(p.price.toString()), new Decimal(0)) as unknown as typeof input.price;
+      }
       const data = {
-        name: input.name, price: input.price.toFixed(2), sampleType: input.sampleType, reportHours: input.reportHours, fastingRequired: input.fastingRequired,
+        includes, name: input.name, price: price.toFixed(2), sampleType: input.sampleType, reportHours: input.reportHours, fastingRequired: input.fastingRequired,
         prepEn: input.prepEn ?? null, prepHi: input.prepHi ?? null, aliases: [...new Set(input.aliases.map((a) => a.toLowerCase()))], status: "ACTIVE" as const,
       };
       const existing = await tx.labTest.findFirst({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, code: input.code } });
@@ -110,7 +146,7 @@ export class LabService {
 
   /** The tests named in some text, with their current rates. Only finds tests the hospital actually offers. */
   async findTests(ctx: RequestContext, text: string): Promise<(TestMatch & { price: string; code: string })[]> {
-    const tests = await this.prisma.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" }, select: { id: true, code: true, name: true, price: true, aliases: true } });
+    const tests = await this.priceBundles(this.prisma, ctx, await this.prisma.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" }, select: { id: true, code: true, name: true, price: true, aliases: true, includes: true } }));
     const byId = new Map(tests.map((t) => [t.id, t]));
     return new TestIndex(tests.map((t) => ({ id: t.id, name: t.name, aliases: t.aliases }))).find(text).map((m) => ({ ...m, price: (byId.get(m.testId) as { price: Prisma.Decimal }).price.toFixed(2), code: (byId.get(m.testId) as { code: string }).code }));
   }
@@ -126,8 +162,13 @@ export class LabService {
     const { result, replayed } = await this.idempotency.run(ctx.tenantId, "LAB_BOOKING", o.idempotencyKey, { ...input, source: o.source, fileId: o.fileId ?? null }, async (tx) => {
       const patient = await tx.patient.findFirst({ where: { id: input.patientId, tenantId: ctx.tenantId, status: "ACTIVE" }, select: { id: true } });
       if (!patient) throw new DomainError("PATIENT_NOT_FOUND", "Patient not found", 404);
-      const tests = await tx.labTest.findMany({ where: { id: { in: testIds }, tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" }, select: { id: true, name: true, price: true } });
-      if (tests.length !== testIds.length) throw new DomainError("VALIDATION_FAILED", "One or more tests were not found", 400, [{ path: "testIds", message: "Unknown or inactive test" }]);
+      const asked = await tx.labTest.findMany({ where: { id: { in: testIds }, tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE" }, select: { id: true, name: true, price: true, includes: true } });
+      if (asked.length !== testIds.length) throw new DomainError("VALIDATION_FAILED", "One or more tests were not found", 400, [{ path: "testIds", message: "Unknown or inactive test" }]);
+      // a bundle (a "fever profile") books exactly the tests it includes, each once even when also asked for on its own
+      const bundleCodes = [...new Set(asked.flatMap((t) => t.includes))];
+      const parts = bundleCodes.length ? await tx.labTest.findMany({ where: { tenantId: ctx.tenantId, facilityId: ctx.facilityId, status: "ACTIVE", code: { in: bundleCodes } }, select: { id: true, name: true, price: true, includes: true } }) : [];
+      if (parts.length !== bundleCodes.length) throw new DomainError("VALIDATION_FAILED", "A test in this bundle is no longer offered", 400, [{ path: "testIds", message: "Bundle has an unavailable test" }]);
+      const tests = [...new Map([...asked.filter((t) => t.includes.length === 0), ...parts].map((t) => [t.id, t])).values()];
       const total = tests.reduce((sum, t) => sum.plus(t.price.toString()), new Decimal(0));
       const b = await tx.labBooking.create({
         data: {
@@ -139,7 +180,7 @@ export class LabService {
       });
       await this.audit.record(tx, actorOf(ctx), {
         action: "LAB_BOOKED", entityType: "LabBooking", entityId: b.id,
-        metadata: { source: o.source, tests: tests.length, total: total.toFixed(2), homeCollection: input.homeCollection, ...(o.fileId ? { fileId: o.fileId } : {}) },
+        metadata: { source: o.source, tests: tests.length, ...(bundleCodes.length ? { bundles: asked.filter((t) => t.includes.length).map((t) => t.name).join(", ") } : {}), total: total.toFixed(2), homeCollection: input.homeCollection, ...(o.fileId ? { fileId: o.fileId } : {}) },
       });
       return toBookingView(b);
     });

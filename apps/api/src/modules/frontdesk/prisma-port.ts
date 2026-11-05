@@ -38,8 +38,7 @@ export class PrismaFrontDeskPort implements FrontDeskPort {
   async findTests(text: string): Promise<PricedTestMatch[]> { return this.lab.findTests(this.ctx, text); }
 
   async labTests(ids: string[]): Promise<LabPick[]> {
-    const rows = await this.prisma.labTest.findMany({ where: { id: { in: ids }, ...this.scope, status: "ACTIVE" } });
-    return rows.map((d) => ({ id: d.id, name: d.name, price: d.price.toFixed(2), reportHours: d.reportHours, fastingRequired: d.fastingRequired, prepEn: d.prepEn, prepHi: d.prepHi }));
+    return this.lab.testsByIds(this.ctx, ids);
   }
 
   async doctors(): Promise<DoctorPick[]> {

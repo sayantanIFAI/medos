@@ -10,5 +10,8 @@ export function guessPatientName(text: string): string | null {
       if (name.length >= 2) return name;
     }
   }
+  // a title and a name with the age in brackets, as printed on many clinic forms: "MR. GURUJYOTI SINGH (37y Male)"
+  const t = /(?:^|\s)(?:mr|mrs|ms|master|baby|smt|shri|sri)\.?\s+([\p{L}][\p{L}\p{M} .'-]{1,40}?)\s*(?=\(|,|\s{2,}|$)/imu.exec(text);
+  if (t?.[1] && t[1].trim().length >= 2) return t[1].replace(/\s+/g, " ").trim();
   return null;
 }

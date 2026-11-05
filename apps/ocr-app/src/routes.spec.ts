@@ -21,6 +21,7 @@ const medos = {
   bookLab: async (i: { testIds: string[] }) => { calls.push("lab:" + i.testIds.join(",")); return { id: "a1b2c3d4-0000", totalAmount: "400.00", collectionAt: new Date().toISOString(), items: ["Complete Blood Count (CBC)"] }; },
   bookAppointment: async () => { calls.push("appointment"); return { id: "e5f6a7b8-0000" }; },
   recordScan: async () => { calls.push("audit"); },
+  resolvePatient: async (ref: string, p: { name: string }) => { calls.push("register:" + p.name); return { patientId: PATIENT, mrn: "DEMO-9" }; },
   searchPatients: async (q: string) => (q.toLowerCase().includes("tapan") ? [{ id: PATIENT, name: "Tapan Das", mrn: "DEMO-1", ageYears: 6, sex: null, mobileLast4: "3210" }] : []),
 } as unknown as MedosClient;
 const ocr: OcrEngine = { readImage: async () => ({ text: TEXT, confidence: 90, engine: "fake" }), readPdf: async () => ({ text: TEXT, confidence: 100, engine: "pdf-text" }) };
@@ -52,6 +53,17 @@ describe("OCR app routes", () => {
     assert.ok(out.booked.lab);
     assert.equal(out.fileId, "f1");
     assert.ok(calls.includes("lab:t1") && calls.includes("store"));
+  });
+
+  it("registers a new patient when nobody on the list is right, and refuses a bad age or mobile number", async () => {
+    calls.length = 0;
+    const out = (await run("POST /api/patients", req({}, Buffer.from(JSON.stringify({ name: "Pavan Kumar", ageYears: 30, mobile: "9812345670" }))))).json as { id: string; mrn: string; mobileLast4: string };
+    assert.equal(out.id, PATIENT);
+    assert.equal(out.mobileLast4, "5670");
+    assert.deepEqual(calls, ["register:Pavan Kumar"]);
+    await assert.rejects(run("POST /api/patients", req({}, Buffer.from(JSON.stringify({ name: "Pavan", ageYears: 200 })))), isInvalid);
+    await assert.rejects(run("POST /api/patients", req({}, Buffer.from(JSON.stringify({ name: "Pavan", ageYears: 30, mobile: "12345" })))), isInvalid);
+    await assert.rejects(run("POST /api/patients", req({}, Buffer.from(JSON.stringify({ name: "Pavan", ageYears: 30, extra: 1 })))), isInvalid);
   });
 
   it("refuses to book without a patient, and a bad request is a plain 400", async () => {

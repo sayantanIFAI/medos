@@ -26,6 +26,8 @@ model LabTest {
   prepHi          String?
   /// Other names callers and prescriptions use (CBC, "blood count", Hindi names). Used only to find the test; never shown as fact.
   aliases         String[]     @default([])
+  /// Codes of the tests this one bundles (a "fever profile"). Booking it books exactly these tests, and its rate is the sum of their current rates. Empty for an ordinary test.
+  includes        String[]     @default([])
   status          ActiveStatus @default(ACTIVE)
   createdAt       DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime     @updatedAt @db.Timestamptz(3)
