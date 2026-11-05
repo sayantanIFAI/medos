@@ -43,6 +43,9 @@ start() {
   backup_db
   (cd "$AI" && curl -s -m 3 http://127.0.0.1:8765/health >/dev/null || (setsid nohup ./start.sh > logs/start.log 2>&1 < /dev/null &))
 
+  # load the language model and the vision model into the GPU now, so the first person to use them does not wait a minute
+  (for m in qwen2.5:14b qwen2.5vl:7b; do curl -s -m 180 http://127.0.0.1:11435/api/generate -d "{\"model\":\"$m\",\"keep_alive\":\"24h\",\"prompt\":\"\"}" > /dev/null; done &) 2>/dev/null
+
   AI_TOKEN=$(cat "$AI/token" 2>/dev/null || true)
   (set -a; . "$ROOT/api.env"; set +a; export AI_REMOTE_TOKEN=$AI_TOKEN; cd "$SRC"; setsid nohup node apps/api/dist/main.js > "$LOGS/api.log" 2>&1 < /dev/null &)
   (cd "$SRC/apps/web" && API_URL=http://127.0.0.1:4000/api/v1 setsid nohup pnpm exec next start -p 3000 > "$LOGS/web.log" 2>&1 < /dev/null &)
