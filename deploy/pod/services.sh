@@ -11,6 +11,12 @@ AI=/workspace/medos-ai
 PGBIN=/usr/lib/postgresql/16/bin
 mkdir -p "$LOGS"
 
+# a copy of the database on the volume (the database itself lives on the pod's disk), so a recreated pod can be restored
+backup_db() {
+  mkdir -p "$ROOT/backup"
+  PGPASSWORD=$(cat "$SECRETS/db-password") pg_dump -h 127.0.0.1 -U postgres medos > "$ROOT/backup/medos.sql.new" 2>/dev/null && mv "$ROOT/backup/medos.sql.new" "$ROOT/backup/medos.sql" || rm -f "$ROOT/backup/medos.sql.new"
+}
+
 mine() { pgrep -f "$1" | grep -v "^$$\$" || true; }
 
 stop() {
@@ -33,7 +39,8 @@ tunnel() { # name port -> starts a quick tunnel and waits for its public address
 
 start() {
   DB_PASSWORD=$(cat "$SECRETS/db-password")
-  su postgres -c "$PGBIN/pg_isready -q -h 127.0.0.1 -p 5432" || su postgres -c "$PGBIN/pg_ctl -D $ROOT/pgdata -o '-p 5432 -c listen_addresses=127.0.0.1' -l $LOGS/postgres.log -w start" >/dev/null
+  su postgres -c "$PGBIN/pg_isready -q -h 127.0.0.1 -p 5432" || su postgres -c "$PGBIN/pg_ctl -D /var/lib/medos-pgdata -o '-p 5432 -c listen_addresses=127.0.0.1' -l $LOGS/postgres.log -w start" >/dev/null
+  backup_db
   (cd "$AI" && curl -s -m 3 http://127.0.0.1:8765/health >/dev/null || (setsid nohup ./start.sh > logs/start.log 2>&1 < /dev/null &))
 
   AI_TOKEN=$(cat "$AI/token" 2>/dev/null || true)
@@ -73,7 +80,8 @@ urls() {
 
 case "${1:-status}" in
   start) start ;;
-  stop) stop ;;
+  stop) backup_db; stop ;;
+  backup) backup_db ;;
   restart) stop; start ;;
   status) status ;;
   urls) urls ;;

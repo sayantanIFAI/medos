@@ -20,7 +20,8 @@ ROOT=/workspace/medos-deploy
 SRC=$ROOT/medos
 SECRETS=$ROOT/secrets
 LOGS=$ROOT/logs
-PGDATA=$ROOT/pgdata
+PGDATA=/var/lib/medos-pgdata    # the pod's own disk: the shared volume does not allow the strict folder permissions PostgreSQL needs
+BACKUP=$ROOT/backup/medos.sql   # a copy on the volume, restored when the database is empty (a recreated pod)
 TENANT=${MEDOS_TENANT:-demo}
 mkdir -p "$ROOT" "$SECRETS" "$LOGS" "$ROOT/storage"
 chmod 700 "$SECRETS"
@@ -68,6 +69,10 @@ fi
 export PGPASSWORD="$DB_PASSWORD"
 psql -h 127.0.0.1 -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='medos'" | grep -q 1 || psql -h 127.0.0.1 -U postgres -qc "CREATE DATABASE medos"
 export DATABASE_URL="postgresql://postgres:$DB_PASSWORD@127.0.0.1:5432/medos"
+mkdir -p "$ROOT/backup"
+if [ -s "$BACKUP" ] && ! psql -h 127.0.0.1 -U postgres -d medos -tAc 'SELECT 1 FROM "Tenant" LIMIT 1' >/dev/null 2>&1; then
+  echo "restoring the database from $BACKUP"; psql -h 127.0.0.1 -U postgres -d medos -q -f "$BACKUP" >/dev/null 2>&1 || true
+fi
 
 say "AI host (vision-model OCR, speech, voice, language model) in /workspace/medos-ai"
 AI=/workspace/medos-ai
