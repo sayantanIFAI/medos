@@ -6,6 +6,9 @@ describe("finding a name across Devanagari and English letters", () => {
   it("gives the same sound skeleton to the same name written either way", () => {
     assert.equal(phoneticKey("pavan"), phoneticKey("पवन"));
     assert.equal(phoneticKey("Pawan"), phoneticKey("पवन"));
+    assert.equal(phoneticKey("Paban"), phoneticKey("पवन"), "b and v are one sound");
+    assert.equal(phoneticKey("pavan"), phoneticKey("पबन"), "what a speech recogniser may write for the same name");
+    assert.equal(phoneticKey("Sharma"), phoneticKey("शरमा"), "a missing half-r still matches");
     assert.equal(phoneticKey("Kumar"), phoneticKey("कुमार"));
     assert.equal(phoneticKey("Kumaar"), phoneticKey("कुमार"));
     assert.equal(phoneticKey("Sunita"), phoneticKey("सुनीता"));
@@ -17,6 +20,7 @@ describe("finding a name across Devanagari and English letters", () => {
   it("matches a typed name against a full name in the other script", () => {
     assert.equal(nameMatchesBySound("pavan", "पवन कुमार"), true);
     assert.equal(nameMatchesBySound("pavan kumar", "पवन कुमार"), true);
+    assert.equal(nameMatchesBySound("pavan sharma", "पबन शरमा"), true, "the name as the voicebot heard it");
     assert.equal(nameMatchesBySound("पवन", "Pavan Kumar"), true);
     assert.equal(nameMatchesBySound("kum", "पवन कुमार"), true, "the start of a word is enough");
   });

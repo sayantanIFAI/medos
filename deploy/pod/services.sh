@@ -46,9 +46,7 @@ start() {
   # load the language model and the vision model into the GPU now, so the first person to use them does not wait a minute
   (for m in qwen2.5:14b qwen2.5vl:7b; do curl -s -m 180 http://127.0.0.1:11435/api/generate -d "{\"model\":\"$m\",\"keep_alive\":\"24h\",\"prompt\":\"\"}" > /dev/null; done &) 2>/dev/null
 
-  AI_TOKEN=$(cat "$AI/token" 2>/dev/null || true)
-  (set -a; . "$ROOT/api.env"; set +a; export AI_REMOTE_TOKEN=$AI_TOKEN; cd "$SRC"; setsid nohup node apps/api/dist/main.js > "$LOGS/api.log" 2>&1 < /dev/null &)
-  (cd "$SRC/apps/web" && API_URL=http://127.0.0.1:4000/api/v1 setsid nohup pnpm exec next start -p 3000 > "$LOGS/web.log" 2>&1 < /dev/null &)
+  start_core
 
   # public addresses first, so the apps can link to the web app
   WEB=$(tunnel web 3000); VB=$(tunnel voicebot 5101); OCR=$(tunnel ocr 5102)
@@ -57,6 +55,19 @@ start() {
   start_apps
   sleep 6
   status
+}
+
+start_core() {
+  AI_TOKEN=$(cat "$AI/token" 2>/dev/null || true)
+  (set -a; . "$ROOT/api.env"; set +a; export AI_REMOTE_TOKEN=$AI_TOKEN; cd "$SRC"; setsid nohup node apps/api/dist/main.js > "$LOGS/api.log" 2>&1 < /dev/null &)
+  (cd "$SRC/apps/web" && API_URL=http://127.0.0.1:4000/api/v1 setsid nohup pnpm exec next start -p 3000 > "$LOGS/web.log" 2>&1 < /dev/null &)
+}
+
+# restart the API, web and apps for new code, keeping the same public addresses (the tunnels are left running)
+reload() {
+  for pat in "node apps/api/dist/main.js" "node apps/voicebot/dist/main.js" "node apps/ocr-app/dist/main.js" "next start -p 3000"; do for p in $(mine "$pat"); do kill "$p" 2>/dev/null; done; done
+  sleep 2
+  start_core; sleep 8; start_apps; sleep 6; status
 }
 
 # the voicebot and OCR apps, on the addresses already opened (so their public URLs do not change when only the apps restart)
@@ -96,6 +107,7 @@ case "${1:-status}" in
   stop) backup_db; stop ;;
   backup) backup_db ;;
   apps) stop_apps; start_apps; sleep 5; status ;;
+  reload) reload ;;
   restart) stop; start ;;
   status) status ;;
   urls) urls ;;

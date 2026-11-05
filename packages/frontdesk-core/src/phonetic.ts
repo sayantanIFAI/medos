@@ -1,13 +1,14 @@
 /**
  * Names are written in Devanagari by the voicebot (a spoken Hindi name) and in English letters on most prescriptions ("pavan" and "पवन" are the
  * same person). To find one from the other, both are reduced to a rough sound skeleton: the consonants, with aspirated and look-alike sounds
- * folded together and every vowel dropped, so "pavan", "pawan" and "पवन" all become "pvn", and "kumar", "Kumaar" and "कुमार" become "kmr".
+ * folded together and every vowel dropped, so "pavan", "pawan", "paban" and "पवन" / "पबन" all become "pbn" (b, v and w are one sound here: they are
+ * swapped constantly in speech and spelling, and a speech recogniser writes either), and "kumar", "Kumaar" and "कुमार" become "kmr".
  *
  * It is a way to FIND candidates for a person at the desk to choose from. It never decides that two records are the same patient.
  */
 const DEVANAGARI: Record<string, string> = {
   क: "k", ख: "k", ग: "g", घ: "g", ङ: "n", च: "c", छ: "c", ज: "j", झ: "j", ञ: "n", ट: "t", ठ: "t", ड: "d", ढ: "d", ण: "n", त: "t", थ: "t", द: "d", ध: "d", न: "n",
-  प: "p", फ: "p", ब: "b", भ: "b", म: "m", य: "", र: "r", ल: "l", व: "v", श: "s", ष: "s", स: "s", ह: "", ळ: "l", क़: "k", ख़: "k", ग़: "g", ज़: "j", ड़: "r", ढ़: "r", फ़: "p",
+  प: "p", फ: "p", ब: "b", भ: "b", म: "m", य: "", र: "r", ल: "l", व: "b", श: "s", ष: "s", स: "s", ह: "", ळ: "l", क़: "k", ख़: "k", ग़: "g", ज़: "j", ड़: "r", ढ़: "r", फ़: "p",
 };
 
 function fromDevanagari(s: string): string {
@@ -23,7 +24,7 @@ function fromLatin(s: string): string {
   return s
     .toLowerCase()
     .replace(/chh?/g, "C").replace(/[ksgjbdt]h/g, (m) => m[0] as string).replace(/ph/g, "p").replace(/sh/g, "s")
-    .replace(/ck/g, "k").replace(/q/g, "k").replace(/x/g, "ks").replace(/c/g, "k").replace(/f/g, "p").replace(/[wv]/g, "v").replace(/z/g, "j")
+    .replace(/ck/g, "k").replace(/q/g, "k").replace(/x/g, "ks").replace(/c/g, "k").replace(/f/g, "p").replace(/[wv]/g, "b").replace(/z/g, "j")
     .replace(/C/g, "c").replace(/[^a-z]/g, "").replace(/[aeiouyh]/g, "");
 }
 
