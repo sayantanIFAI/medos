@@ -22,7 +22,8 @@ const ADMIN_PW = process.env.MEDOS_ADMIN_PASSWORD;
 if (!ADMIN_PW) { console.error("Set MEDOS_ADMIN_PASSWORD (the administrator's password for this hospital)."); process.exit(1); }
 
 const ROLE = "Front-desk apps";
-const PERMISSIONS = ["ASSISTANT_USE", "LAB_READ", "LAB_BOOK", "APPOINTMENT_READ", "APPOINTMENT_CREATE", "PATIENT_READ", "PATIENT_CREATE", "PATIENT_UPDATE"];
+// DUPLICATE_OVERRIDE: a second family member on the same mobile number is registered as a new patient and flagged for reception to review, never merged
+const PERMISSIONS = ["ASSISTANT_USE", "LAB_READ", "LAB_BOOK", "APPOINTMENT_READ", "APPOINTMENT_CREATE", "PATIENT_READ", "PATIENT_CREATE", "PATIENT_UPDATE", "DUPLICATE_OVERRIDE"];
 const APPS = [
   { user: "voicebot-app", fullName: "Voicebot app", file: "voicebot.env", port: ["VOICEBOT_PORT", 5101] },
   { user: "ocr-app", fullName: "OCR app", file: "ocr-app.env", port: ["OCR_APP_PORT", 5102] },

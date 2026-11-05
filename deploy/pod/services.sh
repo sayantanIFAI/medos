@@ -54,16 +54,26 @@ start() {
   WEB=$(tunnel web 3000); VB=$(tunnel voicebot 5101); OCR=$(tunnel ocr 5102)
   echo "$WEB" > "$ROOT/url-web"; echo "$VB" > "$ROOT/url-voicebot"; echo "$OCR" > "$ROOT/url-ocr"
 
-  APP_PASS=$(sed -n 's/^password: //p' "$SECRETS/login.txt")
-  for app in voicebot:5101 ocr-app:5102; do
-    n=${app%%:*}; p=${app##*:}
-    envfile=$SRC/.local/$( [ "$n" = voicebot ] && echo voicebot.env || echo ocr-app.env )
-    (set -a; . "$envfile"; set +a
-     export MEDOS_WEB_URL=$WEB AI_URL=http://127.0.0.1:8765 AI_TOKEN=$AI_TOKEN APP_BIND=127.0.0.1 APP_ALLOWED_HOSTS=.trycloudflare.com APP_BASIC_AUTH="reception1:$APP_PASS"
-     cd "$SRC"; setsid nohup node "apps/$n/dist/main.js" > "$LOGS/$n.log" 2>&1 < /dev/null &)
-  done
+  start_apps
   sleep 6
   status
+}
+
+# the voicebot and OCR apps, on the addresses already opened (so their public URLs do not change when only the apps restart)
+start_apps() {
+  AI_TOKEN=$(cat "$AI/token" 2>/dev/null || true); WEB=$(cat "$ROOT/url-web")
+  APP_PASS=$(sed -n 's/^password: //p' "$SECRETS/login.txt")
+  for app in voicebot ocr-app; do
+    envfile=$SRC/.local/$( [ "$app" = voicebot ] && echo voicebot.env || echo ocr-app.env )
+    (set -a; . "$envfile"; set +a
+     export MEDOS_WEB_URL=$WEB AI_URL=http://127.0.0.1:8765 AI_TOKEN=$AI_TOKEN APP_BIND=127.0.0.1 APP_ALLOWED_HOSTS=.trycloudflare.com APP_BASIC_AUTH="reception1:$APP_PASS"
+     cd "$SRC"; setsid nohup node "apps/$app/dist/main.js" > "$LOGS/$app.log" 2>&1 < /dev/null &)
+  done
+}
+
+stop_apps() {
+  for pat in "$SRC/apps/voicebot/dist/main.js" "$SRC/apps/ocr-app/dist/main.js"; do for p in $(mine "$pat"); do kill "$p" 2>/dev/null; done; done
+  sleep 1
 }
 
 status() {
@@ -85,6 +95,7 @@ case "${1:-status}" in
   start) start ;;
   stop) backup_db; stop ;;
   backup) backup_db ;;
+  apps) stop_apps; start_apps; sleep 5; status ;;
   restart) stop; start ;;
   status) status ;;
   urls) urls ;;

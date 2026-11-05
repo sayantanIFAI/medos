@@ -9,7 +9,7 @@ import { makeUserWithPermissions, PASSWORD, registerPatient, startApp, type Test
 
 const PNG = fs.readFileSync(path.resolve(__dirname, "..", "..", "..", "src", "test", "fixtures", "prescription-sample.png"));
 const TOKEN = "pod-token-0123456789";
-const SERVICE_PERMISSIONS = ["ASSISTANT_USE", "LAB_READ", "LAB_BOOK", "APPOINTMENT_READ", "APPOINTMENT_CREATE", "PATIENT_READ", "PATIENT_CREATE", "PATIENT_UPDATE"];
+const SERVICE_PERMISSIONS = ["ASSISTANT_USE", "LAB_READ", "LAB_BOOK", "APPOINTMENT_READ", "APPOINTMENT_CREATE", "PATIENT_READ", "PATIENT_CREATE", "PATIENT_UPDATE", "DUPLICATE_OVERRIDE"];
 const SAMPLE_TEXT = ["Child Clinic", "Dr. Anita Sen, MD", "Investigations: CBC, Lipid Profile", "Follow up with Dr. Anita Sen after 2 weeks."].join("\n");
 
 class ScriptedModel implements LlmClient {
@@ -124,6 +124,20 @@ describe("front-desk API (voicebot app and OCR app)", () => {
     const row = await t.prisma.labBooking.findFirstOrThrow({ where: { id: done.booked?.id } });
     assert.equal(row.source, "VOICE_ASSISTANT");
     assert.equal(row.createdById, voiceUserId);
+  });
+
+  it("a family sharing one mobile number: the second person is a new patient flagged for review, never merged; without the permission it is refused", async () => {
+    const mobile = "9830066001";
+    const first = await voicebot.resolvePatient("family-ref-0001", { name: "Meena Roy", mobile, ageYears: 40, sex: "UNKNOWN" });
+    const second = await voicebot.resolvePatient("family-ref-0002", { name: "Rahul Roy", mobile, ageYears: 12, sex: "UNKNOWN" });
+    assert.notEqual(second.patientId, first.patientId, "two different people stay two patients");
+    const again = await voicebot.resolvePatient("family-ref-0003", { name: "Rahul Roy", mobile, ageYears: 12, sex: "UNKNOWN" });
+    assert.equal(again.patientId, second.patientId, "the same person calling again is recognised");
+
+    const limited = await makeUserWithPermissions(t, a, SERVICE_PERMISSIONS.filter((p) => p !== "DUPLICATE_OVERRIDE"));
+    const lu = await t.prisma.user.findUniqueOrThrow({ where: { id: limited.id }, select: { username: true } });
+    const noOverride = await MedosClient.connect({ baseUrl: base, tenantCode: a.code, identifier: lu.username, password: PASSWORD });
+    await assert.rejects(noOverride.resolvePatient("family-ref-0004", { name: "Kiran Roy", mobile, ageYears: 8, sex: "UNKNOWN" }), (e: { httpStatus?: number }) => e.httpStatus === 403);
   });
 
   it("OCR app: reads the paper on the pod, keeps it with the patient, books the tests and follow-up, and a repeat books nothing twice", async () => {
